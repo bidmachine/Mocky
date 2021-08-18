@@ -1,0 +1,41 @@
+name: deploy
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Generate branch env
+        run: |
+          echo "BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+      - name: switching to java 8 from java 11
+        run: |
+          sudo update-alternatives --set java /usr/lib/jvm/adoptopenjdk-8-hotspot-amd64/bin/java
+
+      - name: Init src repository
+        uses: actions/checkout@v2.3.4
+
+      - name: Generate image tag
+        run: |
+          echo "IMAGE_TAG=`git log --format="%H" -n1`" >> $GITHUB_ENV
+
+      - name: Build app
+        run: |
+          cd server && sbt -J-Xss8m -J-Xms1G -J-Xmx4G -Dsbt.log.format=true docker:stage
+
+      - name: Build docker image
+        run: |
+          docker build -t registry.appodeal.com/bidmachine-k8s/mocky:${{ env.IMAGE_TAG }} server/target/docker/stage/
+
+      - name: Login to registry.appodeal.com
+        uses: docker/login-action@v1
+        with:
+          registry: registry.appodeal.com
+          username: ${{ secrets.REGISTRY_APPODEAL_USERNAME }}
+          password: ${{ secrets.REGISTRY_APPODEAL_PASSWORD }}
+
+      - name: Push image to registry
+        run: |
+          docker push -a registry.appodeal.com/bidmachine-k8s/${{ env.APP_NAME }}
