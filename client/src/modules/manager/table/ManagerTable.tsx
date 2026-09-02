@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { MockStored } from '../../../redux/mocks/types';
 import { NavLink } from 'react-router-dom';
+import { absoluteMockLink } from '../../../services/url';
 
 const ManagerTable = (props: { mocks: MockStored[] }) => (
   <section className="text-center space--xxs">
@@ -69,7 +70,7 @@ const ManagerTable = (props: { mocks: MockStored[] }) => (
                 );
 
                 const openLink = (
-                  <a href={mock.link} target="_blank" rel="noopener noreferrer">
+                  <a href={absoluteMockLink(mock.link)} target="_blank" rel="noopener noreferrer">
                     <FontAwesomeIcon icon={iconOpen} />
                   </a>
                 );
