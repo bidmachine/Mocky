@@ -75,7 +75,6 @@ const TextareaCodeEditor = ({ field, form }: FieldProps<string, NewMockFormValue
         autoCloseBrackets: true,
         foldGutter: true,
         gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-        viewportMargin: Infinity,
         // `placeholder` comes from the display/placeholder addon, which the typings do not cover
         ...({ placeholder } as {}),
       }}

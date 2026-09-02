@@ -2,10 +2,14 @@
  * Code editor used for the mock body: the CodeMirror instance has to look like the other
  * form controls, and grow with its content instead of scrolling in a fixed box.
  */
+/*
+ * A fixed height, never `height: auto` + `max-height`: CodeMirror computes its own scroll
+ * geometry from the height of the element, and a max-height clips the box without telling it.
+ * The gutter then places line numbers against a viewport of a different size than the one the
+ * lines are laid out in, and the numbers drift away from their lines on a long payload.
+ */
 .editor--code .CodeMirror {
-  height: auto;
-  min-height: 260px;
-  max-height: 520px;
+  height: 420px;
   border: 1px solid #e5e5e5;
   border-radius: 4px;
   font-family: 'Source Code Pro', monospace;
