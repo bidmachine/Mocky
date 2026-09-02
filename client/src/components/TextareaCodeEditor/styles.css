@@ -10,7 +10,25 @@
   border-radius: 4px;
   font-family: 'Source Code Pro', monospace;
   font-size: 13px;
+}
+
+/*
+ * CodeMirror measures one line and positions every line absolutely from that measure, so the
+ * container, the sizer and the line must all report the SAME line height. The page theme sets
+ * its own line-height, which the container would otherwise inherit: the measure then disagrees
+ * with the rendered height and wrapped long lines (an ad markup URL, a VAST payload) overlap.
+ * A unitless value is inherited as a ratio, keeping every level in sync.
+ */
+.editor--code .CodeMirror,
+.editor--code .CodeMirror-sizer,
+.editor--code .CodeMirror-lines,
+.editor--code .CodeMirror pre.CodeMirror-line,
+.editor--code .CodeMirror pre.CodeMirror-line-like {
   line-height: 1.5;
+}
+
+/* Breathing room comes from the scroll area, which is not part of the line measurement */
+.editor--code .CodeMirror-lines {
   padding: 6px 0;
 }
 
