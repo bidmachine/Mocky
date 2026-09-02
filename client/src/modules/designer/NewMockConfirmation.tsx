@@ -13,6 +13,7 @@ import DesignerTitle from './components/DesignerTitle';
 import NewMockFeatures from './components/NewMockFeatures';
 import Pub from './components/Pub';
 import SponsoConfirmation from '../sponso-abstract/SponsoConfirmation';
+import { absoluteMockLink } from '../../services/url';
 
 const NewMockConfirmation = () => {
   const [copied, setCopied] = useState(0);
@@ -45,14 +46,14 @@ const NewMockConfirmation = () => {
               <div>
                 <h4 className="mb-2">
                   Mock URL
-                  <CopyToClipboard text={mock.link} onCopy={() => setCopied(1)}>
+                  <CopyToClipboard text={absoluteMockLink(mock.link)} onCopy={() => setCopied(1)}>
                     <FontAwesomeIcon icon={iconCopy} className="iconMocky--main" />
                   </CopyToClipboard>
                 </h4>
 
                 <pre className="user-select-all">
-                  <a href={mock.link} target="_blank" rel="noopener noreferrer">
-                    {mock.link}
+                  <a href={absoluteMockLink(mock.link)} target="_blank" rel="noopener noreferrer">
+                    {absoluteMockLink(mock.link)}
                   </a>
                 </pre>
               </div>

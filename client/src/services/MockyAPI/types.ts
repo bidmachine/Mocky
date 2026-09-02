@@ -8,7 +8,8 @@ export interface MockCreated {
 export interface MockCreateAPI {
   status: number;
   content?: string;
-  headers?: string;
+  // The API expects a JSON object here, not a serialized string
+  headers?: Record<string, unknown>;
   charset: string;
   content_type: string;
   secret: string;

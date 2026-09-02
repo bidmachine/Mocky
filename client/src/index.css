@@ -1,3 +1,12 @@
+/*
+ * The theme caps every page at 1140px, which is narrow for a mock body. 1440px keeps a line of
+ * code inside the range that stays comfortable to read, and everything on the page — the table,
+ * the expanded row, the editor — shares this single width so the layout reads as one block.
+ */
+.container {
+  max-width: 1440px;
+}
+
 .textarea--code {
   font-family: 'Source Code Pro';
   font-size: 12px;

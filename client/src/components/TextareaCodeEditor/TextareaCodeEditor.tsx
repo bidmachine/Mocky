@@ -1,6 +1,8 @@
 import React from 'react';
 import { FieldProps } from 'formik';
-import TextareaAutosize from 'react-textarea-autosize';
+
+import CodeEditor from '../CodeEditor/CodeEditor';
+import { NewMockFormValues } from '../../modules/designer/form/types';
 
 const placeholder = JSON.stringify(
   {
@@ -14,17 +16,15 @@ const placeholder = JSON.stringify(
   2
 );
 
-const TextareaCodeEditor = ({ field, form, ...props }: FieldProps & { label: string }) => {
-  return (
-    <TextareaAutosize
-      minRows={12}
-      maxRows={20}
-      placeholder={placeholder}
-      className="textarea--code"
-      {...field}
-      {...props}
-    />
-  );
-};
+const TextareaCodeEditor = ({ field, form }: FieldProps<string, NewMockFormValues>) => (
+  <CodeEditor
+    name={field.name}
+    value={field.value ?? ''}
+    contentType={form.values.contentType}
+    placeholder={placeholder}
+    onChange={(value) => form.setFieldValue(field.name, value)}
+    onBlur={() => form.setFieldTouched(field.name, true)}
+  />
+);
 
 export default TextareaCodeEditor;

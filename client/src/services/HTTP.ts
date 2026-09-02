@@ -26,6 +26,18 @@ async function post<T>(url: string, payload: any): Promise<HttpResponse<T>> {
   return response;
 }
 
+async function put(url: string, payload: any): Promise<Boolean> {
+  const request = {
+    headers: { 'Content-Type': 'application/json' },
+    method: 'PUT',
+    body: JSON.stringify(payload),
+    mode: 'cors' as RequestMode,
+  };
+
+  const response = await fetch(url, request);
+  return response.status === 204;
+}
+
 async function _delete(url: string, payload: any): Promise<Boolean> {
   const request = {
     headers: { 'Content-Type': 'application/json' },
@@ -41,6 +53,7 @@ async function _delete(url: string, payload: any): Promise<Boolean> {
 const HTTP = {
   get: get,
   post: post,
+  put: put,
   delete: _delete,
 };
 

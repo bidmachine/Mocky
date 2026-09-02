@@ -19,7 +19,7 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
     <section className="space--xxs bg--secondary">
       <div className="container">
         <div className="row justify-content-center no-gutters">
-          <div className="col-md-10 col-lg-8">
+          <div className="col-md-12 col-lg-11">
             <div className="boxed boxed--border">
               <Form className="text-left mx-0">
                 <CleanConfirmationOnSubmit />

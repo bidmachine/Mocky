@@ -23,3 +23,140 @@ button.btn--confirmation {
   background: #dc3545 !important;
   color: #fff !important;
 }
+
+/*
+ * Saved mocks list: collapsed row + expandable preview / inline body editor
+ */
+table.table--mocks td {
+  vertical-align: middle;
+  text-align: left;
+}
+
+td.mock-name span {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+td.mock-badges .badge {
+  margin-bottom: 2px;
+}
+
+td.mock-actions {
+  white-space: nowrap;
+}
+
+button.btn-expand,
+button.btn-icon {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  color: inherit;
+  line-height: 1;
+  font-size: 17px;
+}
+
+button.btn-expand:hover,
+button.btn-icon:hover {
+  opacity: 0.65;
+}
+
+td.mock-actions a {
+  font-size: 17px;
+  padding: 4px 6px;
+  display: inline-block;
+}
+
+button.btn-expand {
+  color: #6c757d;
+}
+
+button.btn-icon.icon-edit {
+  color: #6c757d;
+  opacity: 1;
+}
+
+tr.mock-details > td {
+  background: #f8f9fa;
+  padding: 14px 18px;
+}
+
+
+div.mock-url {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+div.mock-headers {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  margin-bottom: 8px;
+  color: #495057;
+}
+
+div.mock-headers .header-key {
+  font-weight: 600;
+}
+
+div.mock-empty {
+  font-size: 12px;
+  color: #6c757d;
+  font-style: italic;
+  padding: 6px 0;
+}
+
+label.mock-field {
+  display: block;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+span.mock-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6c757d;
+  margin-bottom: 3px;
+}
+
+label.mock-field .form-control {
+  width: 100%;
+  font-size: 13px;
+}
+
+div.mock-editor-actions {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+div.mock-editor-actions .btn {
+  margin: 0;
+  padding: 8px 22px;
+  font-size: 13px;
+}
+
+
+
+div.mock-warning,
+div.mock-error {
+  font-size: 12px;
+  border-radius: 3px;
+  padding: 6px 10px;
+  margin-top: 8px;
+}
+
+div.mock-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+div.mock-error {
+  background: #f8d7da;
+  color: #721c24;
+}

@@ -1,0 +1,22 @@
+/*
+ * Code editor used for the mock body.
+ *
+ * The editor sizes itself through Ace's own `minLines` / `maxLines`: no height, max-height or
+ * line-height is set here. Ace derives its scroll geometry and its gutter positions from the
+ * height it computed, so overriding any of them from CSS makes the line numbers drift away
+ * from their lines once a long line (an ad markup URL, a VAST payload) wraps.
+ */
+.editor--code {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.editor--code .ace_editor {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 13px;
+}
+
+.editor--code .ace_gutter {
+  background: #fafafa;
+}

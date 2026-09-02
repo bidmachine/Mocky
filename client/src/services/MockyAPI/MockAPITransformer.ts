@@ -2,6 +2,16 @@ import { NewMockFormValues } from '../../modules/designer/form/types';
 import Random from 'randomstring';
 import { MockCreated, MockCreateAPI } from './types';
 import { MockStored } from '../../redux/mocks/types';
+import { headersForApi } from '../format';
+
+/**
+ * Fields of a mock that can be edited from the management console.
+ * An omitted field keeps its current value.
+ */
+export interface MockEdits {
+  content?: string;
+  name?: string;
+}
 
 /**
  * Transform Mock form data to the payload expected by the API
@@ -37,9 +47,69 @@ const createdToStore = (created: MockCreated, data: MockCreateAPI): MockStored =
   return { ...created, name, status, content, charset, headers, contentType: content_type, deleteLink, createdAt };
 };
 
+/**
+ * Build the payload of a mock update (`PUT /api/mock/:id`).
+ *
+ * The API replaces the whole mock, so every field has to be sent back, not only the edited ones.
+ * `expiration` is part of that payload and the API recomputes `expire_at` from it, so the current
+ * expiration is sent again to keep an edit from silently changing when the mock expires.
+ */
+const storedToUpdateApi = (mock: MockStored, edits: MockEdits): MockCreateAPI => {
+  const content = edits.content ?? mock.content ?? '';
+  const name = (edits.name ?? mock.name ?? '').trim();
+
+  return {
+    status: mock.status,
+    content: content !== '' ? content : undefined,
+    content_type: mock.contentType,
+    charset: mock.charset,
+    secret: mock.secret,
+    name: name !== '' ? name : undefined,
+    expiration: currentExpiration(mock),
+    headers: headersForApi(mock.headers),
+  };
+};
+
+/**
+ * Map the stored `expireAt` date back to the `expiration` value expected by the API.
+ *
+ * The API takes a duration, not a date, and recomputes `expire_at` as `now + duration` on every
+ * update. There is therefore no value that preserves an existing deadline: the closest bucket
+ * that does not outlive it is used, so an edit can only bring the expiry closer, never push it
+ * further away. `never` is the common case, and is preserved exactly.
+ */
+const currentExpiration = (mock: MockStored): string => {
+  if (!mock.expireAt) return 'never';
+
+  const remainingDays = (new Date(mock.expireAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+
+  // Rounding down keeps an edit from resurrecting a mock that has already expired, and from
+  // ratcheting the deadline forward every time the mock is saved.
+  if (remainingDays >= 361) return '1year';
+  if (remainingDays >= 31) return '1month';
+  if (remainingDays >= 7) return '1week';
+  return '1day';
+};
+
+/**
+ * Apply the edited fields on the mock kept in the local-storage
+ */
+const updatedToStore = (mock: MockStored, edits: MockEdits): MockStored => {
+  const content = edits.content ?? mock.content ?? '';
+  const name = (edits.name ?? mock.name ?? '').trim();
+
+  return {
+    ...mock,
+    content: content !== '' ? content : undefined,
+    name: name !== '' ? name : undefined,
+  };
+};
+
 const MockyAPITransformer = {
   formToApi,
   createdToStore,
+  storedToUpdateApi,
+  updatedToStore,
 };
 
 export default MockyAPITransformer;
