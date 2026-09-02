@@ -1,10 +1,10 @@
 /*
- * The theme caps every page at 1140px. 1280px is the width most dashboards settle on: it keeps
- * a line of code near the 80-120 character range that stays comfortable to read, while a
- * wider page would only spread a table row thin and make it harder to follow across.
+ * The theme caps every page at 1140px, which is narrow for a mock body. 1440px keeps a line of
+ * code inside the range that stays comfortable to read, and everything on the page — the table,
+ * the expanded row, the editor — shares this single width so the layout reads as one block.
  */
 .container {
-  max-width: 1280px;
+  max-width: 1440px;
 }
 
 .textarea--code {
