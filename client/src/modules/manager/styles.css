@@ -87,20 +87,11 @@ div.mock-headers .header-key {
   font-weight: 600;
 }
 
-pre.mock-body {
-  text-align: left;
-  font-family: 'Source Code Pro', monospace;
+div.mock-empty {
   font-size: 12px;
-  line-height: 1.4;
-  max-height: 320px;
-  overflow: auto;
-  background: #fff;
-  border: 1px solid #dee2e6;
-  border-radius: 3px;
-  padding: 10px;
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
+  color: #6c757d;
+  font-style: italic;
+  padding: 6px 0;
 }
 
 label.mock-field {
@@ -122,13 +113,6 @@ span.mock-field-label {
 label.mock-field .form-control {
   width: 100%;
   font-size: 13px;
-}
-
-div.mock-editor .textarea--code {
-  width: 100%;
-  font-family: 'Source Code Pro', monospace;
-  font-size: 12px;
-  line-height: 1.4;
 }
 
 div.mock-editor-actions {

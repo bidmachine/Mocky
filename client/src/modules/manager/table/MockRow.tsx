@@ -3,7 +3,6 @@ import Moment from 'react-moment';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { useDispatch } from 'react-redux';
 import { NavLink } from 'react-router-dom';
-import TextareaAutosize from 'react-textarea-autosize';
 
 import {
   faChevronDown as iconCollapsed,
@@ -20,6 +19,7 @@ import { update as updateMock } from '../../../redux/mocks/slice';
 import MockyAPI from '../../../services/MockyAPI/MockyAPI';
 import GA from '../../../services/Analytics/GA';
 import { absoluteMockLink } from '../../../services/url';
+import CodeEditor from '../../../components/CodeEditor/CodeEditor';
 import { formatBody, humanSize, isValidForContentType } from '../../../services/format';
 
 const MockRow = (props: { mock: MockStored }) => {
@@ -148,9 +148,19 @@ const MockRow = (props: { mock: MockStored }) => {
               </div>
             )}
 
-            {!editing && (
-              <pre className="mock-body">{formatBody(body, mock.contentType) || '(empty body)'}</pre>
-            )}
+            {!editing &&
+              (body === '' ? (
+                <div className="mock-empty">(empty body)</div>
+              ) : (
+                <CodeEditor
+                  name={`preview-${mock.id}`}
+                  value={formatBody(body, mock.contentType)}
+                  contentType={mock.contentType}
+                  readOnly
+                  minLines={3}
+                  maxLines={20}
+                />
+              ))}
 
             {editing && (
               <div className="mock-editor">
@@ -171,13 +181,14 @@ const MockRow = (props: { mock: MockStored }) => {
                   <span className="mock-field-label">Response body</span>
                 </label>
 
-                <TextareaAutosize
-                  minRows={6}
-                  maxRows={24}
-                  className="textarea--code"
+                <CodeEditor
+                  name={`edit-${mock.id}`}
                   value={draft}
-                  disabled={saving}
-                  onChange={(event) => setDraft(event.target.value)}
+                  contentType={mock.contentType}
+                  readOnly={saving}
+                  minLines={6}
+                  maxLines={24}
+                  onChange={setDraft}
                 />
 
                 {invalidJson && (
