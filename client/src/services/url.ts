@@ -18,12 +18,22 @@ export const absoluteMockLink = (link?: string): string => {
     return trimmed;
   }
 
+  // The scheme of the page is reused, so a mock served over plain HTTP (a local or on-premise
+  // instance) is not forced to HTTPS, which would point to a port where there is no TLS.
+  const scheme = pageScheme();
+
   // Protocol-relative link (`//host/path`) already carries its host: only the scheme is missing.
   if (trimmed.startsWith('//')) {
-    return `https:${trimmed}`;
+    return `${scheme}:${trimmed}`;
   }
 
-  return `https://${trimmed.replace(/^\/+/, '')}`;
+  return `${scheme}://${trimmed.replace(/^\/+/, '')}`;
+};
+
+const pageScheme = (): string => {
+  const protocol = typeof window !== 'undefined' ? window.location.protocol : '';
+
+  return protocol === 'http:' || protocol === 'https:' ? protocol.replace(':', '') : 'https';
 };
 
 export default absoluteMockLink;

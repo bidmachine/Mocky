@@ -7,11 +7,17 @@ describe('absoluteMockLink', () => {
   });
 
   it('makes a scheme-less link absolute, so the host is not duplicated on open', () => {
-    expect(absoluteMockLink('mocky.example.com/v3/abc')).toBe('https://mocky.example.com/v3/abc');
+    // jsdom serves the tests over http, and the scheme of the page is reused
+    expect(absoluteMockLink('mocky.example.com/v3/abc')).toBe('http://mocky.example.com/v3/abc');
   });
 
   it('keeps the host of a protocol-relative link', () => {
-    expect(absoluteMockLink('//mocky.example.com/v3/abc')).toBe('https://mocky.example.com/v3/abc');
+    expect(absoluteMockLink('//mocky.example.com/v3/abc')).toBe('http://mocky.example.com/v3/abc');
+  });
+
+  it('does not force HTTPS on a mock served over plain HTTP', () => {
+    // A local or on-premise instance has no TLS on the mock port: forcing https would break the link
+    expect(absoluteMockLink('localhost:8080/v3/abc')).toBe('http://localhost:8080/v3/abc');
   });
 
   it('handles an empty or missing link', () => {
