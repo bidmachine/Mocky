@@ -1,72 +1,22 @@
 /*
- * Code editor used for the mock body: the CodeMirror instance has to look like the other
- * form controls, and grow with its content instead of scrolling in a fixed box.
+ * Code editor used for the mock body.
+ *
+ * The editor sizes itself through Ace's own `minLines` / `maxLines`: no height, max-height or
+ * line-height is set here. Ace derives its scroll geometry and its gutter positions from the
+ * height it computed, so overriding any of them from CSS makes the line numbers drift away
+ * from their lines once a long line (an ad markup URL, a VAST payload) wraps.
  */
-/*
- * A fixed height, never `height: auto` + `max-height`: CodeMirror computes its own scroll
- * geometry from the height of the element, and a max-height clips the box without telling it.
- * The gutter then places line numbers against a viewport of a different size than the one the
- * lines are laid out in, and the numbers drift away from their lines on a long payload.
- */
-.editor--code .CodeMirror {
-  height: 420px;
+.editor--code {
   border: 1px solid #e5e5e5;
   border-radius: 4px;
+  overflow: hidden;
+}
+
+.editor--code .ace_editor {
   font-family: 'Source Code Pro', monospace;
   font-size: 13px;
 }
 
-/*
- * CodeMirror measures one line and positions every line absolutely from that measure, so the
- * container, the sizer and the line must all report the SAME line height. The page theme sets
- * its own line-height, which the container would otherwise inherit: the measure then disagrees
- * with the rendered height and wrapped long lines (an ad markup URL, a VAST payload) overlap.
- * A unitless value is inherited as a ratio, keeping every level in sync.
- */
-.editor--code .CodeMirror,
-.editor--code .CodeMirror-sizer,
-.editor--code .CodeMirror-lines,
-.editor--code .CodeMirror pre.CodeMirror-line,
-.editor--code .CodeMirror pre.CodeMirror-line-like {
-  line-height: 1.5;
-}
-
-/* Breathing room comes from the scroll area, which is not part of the line measurement */
-.editor--code .CodeMirror-lines {
-  padding: 6px 0;
-}
-
-.editor--code .CodeMirror-focused {
-  border-color: #4a90e2;
-}
-
-.editor--code .CodeMirror-gutters {
+.editor--code .ace_gutter {
   background: #fafafa;
-  border-right: 1px solid #eee;
-}
-
-.editor--code .CodeMirror-linenumber {
-  color: #b0b0b0;
-}
-
-/*
- * JSON: keys, values and literals each get their own colour.
- * A key is tokenized as `cm-property cm-string`, so the key rule has to win over the
- * string rule, otherwise keys and string values end up the same colour.
- */
-.editor--code .cm-string {
-  color: #1a7f37;
-}
-
-.editor--code .cm-property,
-.editor--code .cm-property.cm-string {
-  color: #0550ae;
-}
-
-.editor--code .cm-number {
-  color: #b35900;
-}
-
-.editor--code .cm-atom {
-  color: #8250df;
 }
