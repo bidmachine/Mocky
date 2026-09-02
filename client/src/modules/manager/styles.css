@@ -140,19 +140,7 @@ div.mock-editor-actions .btn {
   font-size: 13px;
 }
 
-/* Header above the body: its label on the left, the Edit button on the right */
-div.mock-body-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
 
-div.mock-body-header .btn {
-  margin: 0;
-  padding: 6px 18px;
-  font-size: 12px;
-}
 
 div.mock-warning,
 div.mock-error {

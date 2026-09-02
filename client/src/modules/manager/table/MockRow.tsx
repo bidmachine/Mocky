@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import Moment from 'react-moment';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { useDispatch } from 'react-redux';
@@ -8,7 +8,6 @@ import {
   faChevronDown as iconCollapsed,
   faChevronUp as iconExpanded,
   faCopy as iconCopy,
-  faEdit as iconEdit,
   faExternalLinkAlt as iconOpen,
   faTrash as iconDelete,
 } from '@fortawesome/free-solid-svg-icons';
@@ -27,60 +26,31 @@ const MockRow = (props: { mock: MockStored }) => {
   const dispatch = useDispatch();
 
   const [expanded, setExpanded] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
-  const [nameDraft, setNameDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [copied, setCopied] = useState(false);
-  const editorRef = useRef<HTMLDivElement | null>(null);
 
-  /**
-   * Opening the editor replaces the preview by a taller block (a name field, the body and the
-   * save controls), which pushes the save buttons past the bottom of the window when the row
-   * was reached by scrolling. Scroll just enough to bring the whole editor back into view, and
-   * leave the page alone when it already fits.
-   */
-  useLayoutEffect(() => {
-    if (!editing) return;
+  // The row is always editable once expanded, so the drafts start from what the mock holds.
+  const [draft, setDraft] = useState(() => formatBody(mock.content ?? '', mock.contentType));
+  const [nameDraft, setNameDraft] = useState(mock.name ?? '');
 
-    // Ace sizes itself right after mounting, so the editor is measured on a timer rather than
-    // immediately: measuring too early sees a short block that still fits and scrolls nothing.
-    const timer = window.setTimeout(() => {
-      const editor = editorRef.current;
-      if (!editor) return;
+  // What is currently stored, in the same shape as the drafts, so the two can be compared.
+  const [savedSnapshot, setSavedSnapshot] = useState(() => ({
+    body: formatBody(mock.content ?? '', mock.contentType),
+    name: mock.name ?? '',
+  }));
 
-      const { top, bottom } = editor.getBoundingClientRect();
-      const margin = 16;
-
-      if (bottom <= window.innerHeight - margin && top >= 0) return;
-
-      // Prefer showing the end of the editor, where the save controls are, but never push its
-      // top out of view: on an editor taller than the window, the body has to stay reachable.
-      const delta = Math.min(bottom - window.innerHeight + margin, top - margin);
-
-      // `scrollBy` is called without smooth behaviour: the editor has just replaced the
-      // preview, and an animated scroll competes with that reflow instead of following it.
-      window.scrollBy(0, delta);
-    }, 60);
-
-    return () => window.clearTimeout(timer);
-  }, [editing]);
 
   const link = absoluteMockLink(mock.link);
-  const body = mock.content ?? '';
   const headers = parseHeaders(mock.headers);
 
-  const startEditing = () => {
-    setDraft(formatBody(body, mock.contentType));
-    setNameDraft(mock.name ?? '');
-    setError(undefined);
-    setEditing(true);
-    setExpanded(true);
-  };
+  // Saving is only offered once something actually differs from what is stored, so an
+  // expanded row that was only read never looks like it has pending changes.
+  const isDirty = draft !== savedSnapshot.body || nameDraft !== savedSnapshot.name;
 
-  const cancelEditing = () => {
-    setEditing(false);
+  const reset = () => {
+    setDraft(savedSnapshot.body);
+    setNameDraft(savedSnapshot.name);
     setError(undefined);
   };
 
@@ -102,11 +72,17 @@ const MockRow = (props: { mock: MockStored }) => {
 
     GA.event('mock', 'update');
     dispatch(updateMock(updated));
-    setEditing(false);
+
+    // The draft is what was just saved, so it becomes the new baseline: comparing against the
+    // freshly stored mock would keep the row dirty, since the draft is formatted and the mock
+    // holds the body exactly as it was sent.
+    setDraft(draft);
+    setNameDraft(nameDraft.trim());
+    setSavedSnapshot({ body: draft, name: nameDraft.trim() });
   };
 
   // A JSON mock that no longer parses would still be served as-is, so warn before saving it
-  const invalidJson = editing && !isValidForContentType(draft, mock.contentType);
+  const invalidJson = isDirty && !isValidForContentType(draft, mock.contentType);
 
   return (
     <>
@@ -177,76 +153,50 @@ const MockRow = (props: { mock: MockStored }) => {
               </div>
             )}
 
-            {!editing && (
-              <div className="mock-body-header">
-                <span className="mock-field-label">Response body</span>
-                <button type="button" className="btn btn--sm btn--primary" onClick={startEditing}>
-                  <FontAwesomeIcon icon={iconEdit} />
-                  &nbsp;Edit
-                </button>
+            <label className="mock-field">
+              <span className="mock-field-label">Name</span>
+              <input
+                type="text"
+                className="form-control"
+                value={nameDraft}
+                disabled={saving}
+                maxLength={100}
+                placeholder="A name to identify this mock"
+                onChange={(event) => setNameDraft(event.target.value)}
+              />
+            </label>
+
+            <span className="mock-field-label">Response body</span>
+
+            <CodeEditor
+              name={`edit-${mock.id}`}
+              value={draft}
+              contentType={mock.contentType}
+              readOnly={saving}
+              minLines={6}
+              maxLines={24}
+              onChange={setDraft}
+            />
+
+            {invalidJson && (
+              <div className="mock-warning">
+                This body is not valid JSON, but the mock is served as <code>{mock.contentType}</code>.
               </div>
             )}
 
-            {!editing &&
-              (body === '' ? (
-                <div className="mock-empty">(empty body)</div>
-              ) : (
-                <CodeEditor
-                  name={`preview-${mock.id}`}
-                  value={formatBody(body, mock.contentType)}
-                  contentType={mock.contentType}
-                  readOnly
-                  minLines={3}
-                  maxLines={20}
-                />
-              ))}
+            {error && <div className="mock-error">{error}</div>}
 
-            {editing && (
-              <div className="mock-editor" ref={editorRef}>
-                <label className="mock-field">
-                  <span className="mock-field-label">Name</span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    value={nameDraft}
-                    disabled={saving}
-                    maxLength={100}
-                    placeholder="A name to identify this mock"
-                    onChange={(event) => setNameDraft(event.target.value)}
-                  />
-                </label>
-
-                <span className="mock-field-label">Response body</span>
-
-                <CodeEditor
-                  name={`edit-${mock.id}`}
-                  value={draft}
-                  contentType={mock.contentType}
-                  readOnly={saving}
-                  minLines={6}
-                  maxLines={24}
-                  onChange={setDraft}
-                />
-
-                {invalidJson && (
-                  <div className="mock-warning">
-                    This body is not valid JSON, but the mock is served as <code>{mock.contentType}</code>.
-                  </div>
-                )}
-
-                {error && <div className="mock-error">{error}</div>}
-
-                <div className="mock-editor-actions">
-                  <button type="button" className="btn btn--primary" onClick={save} disabled={saving}>
-                    {saving ? 'Saving...' : 'Save'}
-                  </button>
-                  <button type="button" className="btn" onClick={cancelEditing} disabled={saving}>
-                    Cancel
-                  </button>
-                  <small className="type--fade">The mock URL does not change.</small>
-                </div>
-              </div>
-            )}
+            <div className="mock-editor-actions">
+              <button type="button" className="btn btn--primary" onClick={save} disabled={!isDirty || saving}>
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button type="button" className="btn" onClick={reset} disabled={!isDirty || saving}>
+                Reset
+              </button>
+              <small className="type--fade">
+                {isDirty ? 'Unsaved changes. The mock URL does not change.' : 'The mock URL does not change.'}
+              </small>
+            </div>
           </td>
         </tr>
       )}
