@@ -1,4 +1,4 @@
-import { formatBody, highlightLanguage, humanSize, isValidForContentType } from './format';
+import { beautifyOnPaste, formatBody, highlightLanguage, humanSize, isValidForContentType } from './format';
 
 describe('formatBody', () => {
   it('pretty-prints a minified JSON body', () => {
@@ -55,5 +55,31 @@ describe('humanSize', () => {
 
   it('handles a missing body', () => {
     expect(humanSize(undefined)).toBe('0 B');
+  });
+});
+
+describe('beautifyOnPaste', () => {
+  it('formats a minified JSON payload that was just pasted', () => {
+    expect(beautifyOnPaste('{"a":1,"b":[2]}', 'application/json')).toBe(
+      '{\n  "a": 1,\n  "b": [\n    2\n  ]\n}'
+    );
+  });
+
+  it('keeps a partial paste untouched, so nothing the user pasted is lost', () => {
+    expect(beautifyOnPaste('{"a":', 'application/json')).toBe('{"a":');
+  });
+
+  it('does not touch a paste that is not JSON', () => {
+    expect(beautifyOnPaste('<a>1</a>', 'application/xml')).toBe('<a>1</a>');
+    expect(beautifyOnPaste('{"a":1}', 'text/plain')).toBe('{"a":1}');
+  });
+
+  it('handles an empty paste', () => {
+    expect(beautifyOnPaste('', 'application/json')).toBe('');
+    expect(beautifyOnPaste('   ', 'application/json')).toBe('   ');
+  });
+
+  it('formats a JSON array as well', () => {
+    expect(beautifyOnPaste('[1,2]', 'application/json')).toBe('[\n  1,\n  2\n]');
   });
 });

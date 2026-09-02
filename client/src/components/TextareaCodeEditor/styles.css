@@ -1,0 +1,50 @@
+/*
+ * Code editor used for the mock body: the CodeMirror instance has to look like the other
+ * form controls, and grow with its content instead of scrolling in a fixed box.
+ */
+.editor--code .CodeMirror {
+  height: auto;
+  min-height: 260px;
+  max-height: 520px;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 6px 0;
+}
+
+.editor--code .CodeMirror-focused {
+  border-color: #4a90e2;
+}
+
+.editor--code .CodeMirror-gutters {
+  background: #fafafa;
+  border-right: 1px solid #eee;
+}
+
+.editor--code .CodeMirror-linenumber {
+  color: #b0b0b0;
+}
+
+/*
+ * JSON: keys, values and literals each get their own colour.
+ * A key is tokenized as `cm-property cm-string`, so the key rule has to win over the
+ * string rule, otherwise keys and string values end up the same colour.
+ */
+.editor--code .cm-string {
+  color: #1a7f37;
+}
+
+.editor--code .cm-property,
+.editor--code .cm-property.cm-string {
+  color: #0550ae;
+}
+
+.editor--code .cm-number {
+  color: #b35900;
+}
+
+.editor--code .cm-atom {
+  color: #8250df;
+}

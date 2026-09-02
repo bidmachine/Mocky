@@ -58,3 +58,22 @@ export const humanSize = (content?: string): string => {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
+
+/**
+ * Format a JSON payload that was just pasted into an editor.
+ *
+ * Pasted responses are usually minified, which makes them unreadable. Only a payload that
+ * actually parses is reformatted: anything else (a partial paste, a non-JSON body) is returned
+ * unchanged, so pasting never destroys what the user meant to paste.
+ */
+export const beautifyOnPaste = (pasted: string, contentType: string): string => {
+  const text = pasted ?? '';
+
+  if (!isJson(contentType) || text.trim() === '') return text;
+
+  try {
+    return JSON.stringify(JSON.parse(text), null, 2);
+  } catch (e) {
+    return text;
+  }
+};
