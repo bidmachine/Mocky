@@ -19,7 +19,7 @@ import MockyAPI from '../../../services/MockyAPI/MockyAPI';
 import GA from '../../../services/Analytics/GA';
 import { absoluteMockLink } from '../../../services/url';
 import CodeEditor from '../../../components/CodeEditor/CodeEditor';
-import { formatBody, humanSize, isValidForContentType } from '../../../services/format';
+import { formatBody, humanSize, isValidForContentType, parseHeaders } from '../../../services/format';
 
 const MockRow = (props: { mock: MockStored }) => {
   const { mock } = props;
@@ -57,7 +57,14 @@ const MockRow = (props: { mock: MockStored }) => {
     setSaving(true);
     setError(undefined);
 
-    const updated = await MockyAPI.update(mock, { content: draft, name: nameDraft });
+    // The body is only sent when it was actually edited: the draft is pretty-printed, so
+    // sending it after a rename alone would silently rewrite the stored response bytes.
+    const bodyChanged = draft !== savedSnapshot.body;
+
+    const updated = await MockyAPI.update(mock, {
+      content: bodyChanged ? draft : undefined,
+      name: nameDraft,
+    });
 
     setSaving(false);
 
@@ -202,22 +209,6 @@ const MockRow = (props: { mock: MockStored }) => {
       )}
     </>
   );
-};
-
-/**
- * Headers are stored as a raw JSON string. A body that cannot be parsed is simply not displayed,
- * because the preview must never break the whole list.
- */
-const parseHeaders = (headers?: string): [string, string][] => {
-  if (!headers || headers.trim() === '') return [];
-
-  try {
-    const parsed = JSON.parse(headers);
-    if (typeof parsed !== 'object' || parsed === null) return [];
-    return Object.entries(parsed).map(([key, value]) => [key, String(value)]);
-  } catch (e) {
-    return [];
-  }
 };
 
 const statusColor = (status: number): string => {

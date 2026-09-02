@@ -10,7 +10,8 @@ const mock: MockStored = {
   contentType: 'application/json',
   charset: 'UTF-8',
   content: '{"a":1}',
-  headers: '{"X-FOO":"bar"}',
+  // The designer stores the parsed object, not a string; see parseHeaders
+  headers: { 'X-FOO': 'bar' } as any,
   deleteLink: 'https://mocky.io/manage/delete/id/secret',
   createdAt: new Date('2026-01-01T00:00:00Z'),
 };
@@ -52,11 +53,26 @@ describe('storedToUpdateApi', () => {
     expect(MockyAPITransformer.storedToUpdateApi(mock, { name: '   ' }).name).toBeUndefined();
   });
 
-  it('maps a remaining expiration to the closest bucket', () => {
-    const inThreeDays = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-    const expiring = { ...mock, expireAt: inThreeDays };
+  const inDays = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const expirationFor = (days: number) =>
+    MockyAPITransformer.storedToUpdateApi({ ...mock, expireAt: inDays(days) }, { content: 'x' }).expiration;
 
-    expect(MockyAPITransformer.storedToUpdateApi(expiring, { content: 'x' }).expiration).toBe('1week');
+  it('never pushes an expiry further away, because the API resets it to now + duration', () => {
+    // Rounding up would turn 300 remaining days into a fresh 361, extending the mock silently
+    expect(expirationFor(300)).toBe('1month');
+    expect(expirationFor(2)).toBe('1day');
+    expect(expirationFor(6)).toBe('1day');
+  });
+
+  it('keeps a bucket that still fits exactly', () => {
+    expect(expirationFor(400)).toBe('1year');
+    expect(expirationFor(31)).toBe('1month');
+    expect(expirationFor(7)).toBe('1week');
+  });
+
+  it('does not resurrect a mock that already expired', () => {
+    // The shortest bucket is the least the API can be asked for; it must not be a long one
+    expect(expirationFor(-5)).toBe('1day');
   });
 
   it('sends no content for an emptied body', () => {

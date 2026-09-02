@@ -77,3 +77,46 @@ export const beautifyOnPaste = (pasted: string, contentType: string): string => 
     return text;
   }
 };
+
+/**
+ * Read the headers of a stored mock as pairs.
+ *
+ * `MockStored.headers` is typed as a string, but a mock created through the designer stores the
+ * parsed object the API was sent, while one restored from an older entry holds the raw JSON
+ * string. Both shapes have to be accepted: assuming either one crashes the management console
+ * on the mocks stored in the other shape.
+ */
+export const parseHeaders = (headers?: string | Record<string, unknown>): [string, string][] => {
+  if (headers === undefined || headers === null || headers === '') return [];
+
+  const parsed = typeof headers === 'string' ? tryParseJson(headers) : headers;
+
+  if (typeof parsed !== 'object' || parsed === null) return [];
+
+  return Object.entries(parsed).map(([key, value]) => [key, String(value)]);
+};
+
+/**
+ * Headers of a stored mock, in the object form the API expects, or `undefined` when it has none.
+ */
+export const headersForApi = (headers?: string | Record<string, unknown>): Record<string, unknown> | undefined => {
+  const entries = parseHeaders(headers);
+
+  if (entries.length === 0) return undefined;
+
+  // Built without `Object.fromEntries`, which the ES5 target of this app does not provide.
+  return entries.reduce<Record<string, unknown>>((acc, [key, value]) => {
+    acc[key] = value;
+    return acc;
+  }, {});
+};
+
+const tryParseJson = (value: string): unknown => {
+  if (value.trim() === '') return undefined;
+
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    return undefined;
+  }
+};

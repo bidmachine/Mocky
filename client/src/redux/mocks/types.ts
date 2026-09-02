@@ -7,7 +7,9 @@ export interface MockStored {
   status: number;
   content?: string;
   charset: string;
-  headers?: string;
+  // Mocks created through the designer store the parsed object, entries saved by older
+  // versions hold the raw JSON string; both shapes are read through `parseHeaders`.
+  headers?: string | Record<string, unknown>;
   deleteLink: string;
   createdAt: Date;
   expireAt?: Date;

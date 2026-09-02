@@ -2,6 +2,7 @@ import { NewMockFormValues } from '../../modules/designer/form/types';
 import Random from 'randomstring';
 import { MockCreated, MockCreateAPI } from './types';
 import { MockStored } from '../../redux/mocks/types';
+import { headersForApi } from '../format';
 
 /**
  * Fields of a mock that can be edited from the management console.
@@ -65,24 +66,29 @@ const storedToUpdateApi = (mock: MockStored, edits: MockEdits): MockCreateAPI =>
     secret: mock.secret,
     name: name !== '' ? name : undefined,
     expiration: currentExpiration(mock),
-    headers: mock.headers && mock.headers !== '' ? JSON.parse(mock.headers) : undefined,
+    headers: headersForApi(mock.headers),
   };
 };
 
 /**
  * Map the stored `expireAt` date back to the `expiration` value expected by the API.
- * Mocks are almost always created with `never`; for the other ones the closest remaining
- * duration is used so that editing does not extend nor shorten the lifetime more than needed.
+ *
+ * The API takes a duration, not a date, and recomputes `expire_at` as `now + duration` on every
+ * update. There is therefore no value that preserves an existing deadline: the closest bucket
+ * that does not outlive it is used, so an edit can only bring the expiry closer, never push it
+ * further away. `never` is the common case, and is preserved exactly.
  */
 const currentExpiration = (mock: MockStored): string => {
   if (!mock.expireAt) return 'never';
 
   const remainingDays = (new Date(mock.expireAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
 
-  if (remainingDays <= 1) return '1day';
-  if (remainingDays <= 7) return '1week';
-  if (remainingDays <= 31) return '1month';
-  return '1year';
+  // Rounding down keeps an edit from resurrecting a mock that has already expired, and from
+  // ratcheting the deadline forward every time the mock is saved.
+  if (remainingDays >= 361) return '1year';
+  if (remainingDays >= 31) return '1month';
+  if (remainingDays >= 7) return '1week';
+  return '1day';
 };
 
 /**

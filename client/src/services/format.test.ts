@@ -1,4 +1,12 @@
-import { beautifyOnPaste, formatBody, highlightLanguage, humanSize, isValidForContentType } from './format';
+import {
+  beautifyOnPaste,
+  formatBody,
+  headersForApi,
+  highlightLanguage,
+  humanSize,
+  isValidForContentType,
+  parseHeaders,
+} from './format';
 
 describe('formatBody', () => {
   it('pretty-prints a minified JSON body', () => {
@@ -81,5 +89,44 @@ describe('beautifyOnPaste', () => {
 
   it('formats a JSON array as well', () => {
     expect(beautifyOnPaste('[1,2]', 'application/json')).toBe('[\n  1,\n  2\n]');
+  });
+});
+
+describe('parseHeaders', () => {
+  it('reads headers stored as a JSON string', () => {
+    expect(parseHeaders('{"X-FOO":"bar"}')).toEqual([['X-FOO', 'bar']]);
+  });
+
+  it('reads headers stored as an object, which is what the designer saves', () => {
+    // A mock created through the form stores the parsed object, despite the declared string type
+    expect(parseHeaders({ 'X-FOO': 'bar' } as any)).toEqual([['X-FOO', 'bar']]);
+  });
+
+  it('returns nothing for a mock without headers', () => {
+    expect(parseHeaders(undefined)).toEqual([]);
+    expect(parseHeaders('')).toEqual([]);
+    expect(parseHeaders('   ')).toEqual([]);
+  });
+
+  it('ignores a value that is not a JSON object', () => {
+    expect(parseHeaders('not json')).toEqual([]);
+    expect(parseHeaders('"a string"')).toEqual([]);
+    expect(parseHeaders('null')).toEqual([]);
+  });
+});
+
+describe('headersForApi', () => {
+  it('sends back headers stored as an object without re-parsing them', () => {
+    expect(headersForApi({ 'X-FOO': 'bar' } as any)).toEqual({ 'X-FOO': 'bar' });
+  });
+
+  it('sends back headers stored as a string', () => {
+    expect(headersForApi('{"X-FOO":"bar"}')).toEqual({ 'X-FOO': 'bar' });
+  });
+
+  it('sends no headers when the mock has none', () => {
+    expect(headersForApi(undefined)).toBeUndefined();
+    expect(headersForApi('')).toBeUndefined();
+    expect(headersForApi('{}')).toBeUndefined();
   });
 });
