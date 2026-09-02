@@ -40,7 +40,6 @@ const MockRow = (props: { mock: MockStored }) => {
     name: mock.name ?? '',
   }));
 
-
   const link = absoluteMockLink(mock.link);
   const headers = parseHeaders(mock.headers);
 
@@ -93,7 +92,8 @@ const MockRow = (props: { mock: MockStored }) => {
             className="btn-expand"
             onClick={() => setExpanded(!expanded)}
             aria-expanded={expanded}
-            aria-label={expanded ? 'Hide the details' : 'Show the details'}>
+            aria-label={expanded ? 'Hide the details' : 'Show the details'}
+          >
             <FontAwesomeIcon icon={expanded ? iconExpanded : iconCollapsed} />
           </button>
         </td>
@@ -137,65 +137,67 @@ const MockRow = (props: { mock: MockStored }) => {
       {expanded && (
         <tr className="mock-details">
           <td colSpan={4}>
-            <div className="mock-url">
-              <a href={link} target="_blank" rel="noopener noreferrer">
-                {link}
-              </a>
-            </div>
-
-            {headers.length > 0 && (
-              <div className="mock-headers">
-                {headers.map(([key, value]) => (
-                  <div key={key}>
-                    <span className="header-key">{key}</span>: <span className="header-value">{value}</span>
-                  </div>
-                ))}
+            <div className="mock-details-inner">
+              <div className="mock-url">
+                <a href={link} target="_blank" rel="noopener noreferrer">
+                  {link}
+                </a>
               </div>
-            )}
 
-            <label className="mock-field">
-              <span className="mock-field-label">Name</span>
-              <input
-                type="text"
-                className="form-control"
-                value={nameDraft}
-                disabled={saving}
-                maxLength={100}
-                placeholder="A name to identify this mock"
-                onChange={(event) => setNameDraft(event.target.value)}
+              {headers.length > 0 && (
+                <div className="mock-headers">
+                  {headers.map(([key, value]) => (
+                    <div key={key}>
+                      <span className="header-key">{key}</span>: <span className="header-value">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <label className="mock-field">
+                <span className="mock-field-label">Name</span>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={nameDraft}
+                  disabled={saving}
+                  maxLength={100}
+                  placeholder="A name to identify this mock"
+                  onChange={(event) => setNameDraft(event.target.value)}
+                />
+              </label>
+
+              <span className="mock-field-label">Response body</span>
+
+              <CodeEditor
+                name={`edit-${mock.id}`}
+                value={draft}
+                contentType={mock.contentType}
+                readOnly={saving}
+                minLines={6}
+                maxLines={24}
+                onChange={setDraft}
               />
-            </label>
 
-            <span className="mock-field-label">Response body</span>
+              {invalidJson && (
+                <div className="mock-warning">
+                  This body is not valid JSON, but the mock is served as <code>{mock.contentType}</code>.
+                </div>
+              )}
 
-            <CodeEditor
-              name={`edit-${mock.id}`}
-              value={draft}
-              contentType={mock.contentType}
-              readOnly={saving}
-              minLines={6}
-              maxLines={24}
-              onChange={setDraft}
-            />
+              {error && <div className="mock-error">{error}</div>}
 
-            {invalidJson && (
-              <div className="mock-warning">
-                This body is not valid JSON, but the mock is served as <code>{mock.contentType}</code>.
+              <div className="mock-editor-actions">
+                <button type="button" className="btn btn--primary" onClick={save} disabled={!isDirty || saving}>
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+                <button type="button" className="btn" onClick={reset} disabled={!isDirty || saving}>
+                  Reset
+                </button>
+                <small className="type--fade">
+                  {isDirty ? 'Unsaved changes. The mock URL does not change.' : 'The mock URL does not change.'}
+                </small>
               </div>
-            )}
-
-            {error && <div className="mock-error">{error}</div>}
-
-            <div className="mock-editor-actions">
-              <button type="button" className="btn btn--primary" onClick={save} disabled={!isDirty || saving}>
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-              <button type="button" className="btn" onClick={reset} disabled={!isDirty || saving}>
-                Reset
-              </button>
-              <small className="type--fade">
-                {isDirty ? 'Unsaved changes. The mock URL does not change.' : 'The mock URL does not change.'}
-              </small>
             </div>
           </td>
         </tr>
