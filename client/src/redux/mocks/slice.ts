@@ -15,6 +15,11 @@ export const mocksSlice = createSlice({
       state.last = action.payload;
       state.all.push(action.payload);
     },
+    update: (state, action: PayloadAction<MockStored>) => {
+      const index = state.all.findIndex((mock) => mock.id === action.payload.id);
+      if (index !== -1) state.all[index] = action.payload;
+      if (state.last?.id === action.payload.id) state.last = action.payload;
+    },
     remove: (state, action: PayloadAction<string>) => {
       state.all = state.all.filter((mock) => mock.id !== action.payload);
     },
@@ -24,7 +29,7 @@ export const mocksSlice = createSlice({
   },
 });
 
-export const { store, remove, clearNew } = mocksSlice.actions;
+export const { store, update, remove, clearNew } = mocksSlice.actions;
 
 export const selectLatestMock = (state: RootState) => state.mocks.last;
 export const selectAllMocks = (state: RootState) => state.mocks.all;
