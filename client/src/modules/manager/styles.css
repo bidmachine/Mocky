@@ -49,10 +49,22 @@ button.btn-expand,
 button.btn-icon {
   background: none;
   border: none;
-  padding: 0;
+  padding: 4px 6px;
   cursor: pointer;
   color: inherit;
   line-height: 1;
+  font-size: 17px;
+}
+
+button.btn-expand:hover,
+button.btn-icon:hover {
+  opacity: 0.65;
+}
+
+td.mock-actions a {
+  font-size: 17px;
+  padding: 4px 6px;
+  display: inline-block;
 }
 
 button.btn-expand {
@@ -116,11 +128,30 @@ label.mock-field .form-control {
 }
 
 div.mock-editor-actions {
-  margin-top: 8px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 div.mock-editor-actions .btn {
   margin: 0;
+  padding: 8px 22px;
+  font-size: 13px;
+}
+
+/* Header above the body: its label on the left, the Edit button on the right */
+div.mock-body-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+div.mock-body-header .btn {
+  margin: 0;
+  padding: 6px 18px;
+  font-size: 12px;
 }
 
 div.mock-warning,

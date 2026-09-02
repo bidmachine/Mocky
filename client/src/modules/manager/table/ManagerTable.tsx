@@ -11,10 +11,10 @@ const ManagerTable = (props: { mocks: MockStored[] }) => (
           <table className="table border--round table--alternate-row table-sm table--mocks">
             <thead className="thead-dark">
               <tr>
-                <th style={{ width: '5%' }} aria-label="Details" />
-                <th style={{ width: '35%' }}>Name</th>
-                <th style={{ width: '40%' }}>Response</th>
-                <th style={{ width: '20%' }}>Actions</th>
+                <th style={{ width: '4%' }} aria-label="Details" />
+                <th style={{ width: '38%' }}>Name</th>
+                <th style={{ width: '43%' }}>Response</th>
+                <th style={{ width: '15%' }}>Actions</th>
               </tr>
             </thead>
             <tbody>

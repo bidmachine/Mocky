@@ -1,3 +1,11 @@
+/*
+ * The theme caps every page at 1140px, which is narrow for the content this app shows —
+ * a mock body, a payload preview or the saved mocks table all need the horizontal room.
+ */
+.container {
+  max-width: 1600px;
+}
+
 .textarea--code {
   font-family: 'Source Code Pro';
   font-size: 12px;

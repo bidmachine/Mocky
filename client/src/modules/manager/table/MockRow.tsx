@@ -119,10 +119,6 @@ const MockRow = (props: { mock: MockStored }) => {
             <FontAwesomeIcon icon={iconOpen} />
           </a>
           &nbsp;
-          <button type="button" className="btn-icon icon-edit" onClick={startEditing} title="Edit the response body">
-            <FontAwesomeIcon icon={iconEdit} />
-          </button>
-          &nbsp;
           <NavLink to={`/manage/delete/${mock.id}/${mock.secret}`} className="icon-delete" title="Delete the mock">
             <FontAwesomeIcon icon={iconDelete} />
           </NavLink>
@@ -145,6 +141,16 @@ const MockRow = (props: { mock: MockStored }) => {
                     <span className="header-key">{key}</span>: <span className="header-value">{value}</span>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {!editing && (
+              <div className="mock-body-header">
+                <span className="mock-field-label">Response body</span>
+                <button type="button" className="btn btn--sm btn--primary" onClick={startEditing}>
+                  <FontAwesomeIcon icon={iconEdit} />
+                  &nbsp;Edit
+                </button>
               </div>
             )}
 
@@ -177,9 +183,7 @@ const MockRow = (props: { mock: MockStored }) => {
                   />
                 </label>
 
-                <label className="mock-field">
-                  <span className="mock-field-label">Response body</span>
-                </label>
+                <span className="mock-field-label">Response body</span>
 
                 <CodeEditor
                   name={`edit-${mock.id}`}
@@ -200,18 +204,12 @@ const MockRow = (props: { mock: MockStored }) => {
                 {error && <div className="mock-error">{error}</div>}
 
                 <div className="mock-editor-actions">
-                  <button
-                    type="button"
-                    className="btn btn--sm btn--primary"
-                    onClick={save}
-                    disabled={saving}>
+                  <button type="button" className="btn btn--primary" onClick={save} disabled={saving}>
                     {saving ? 'Saving...' : 'Save'}
                   </button>
-                  &nbsp;
-                  <button type="button" className="btn btn--sm" onClick={cancelEditing} disabled={saving}>
+                  <button type="button" className="btn" onClick={cancelEditing} disabled={saving}>
                     Cancel
                   </button>
-                  &nbsp;
                   <small className="type--fade">The mock URL does not change.</small>
                 </div>
               </div>
