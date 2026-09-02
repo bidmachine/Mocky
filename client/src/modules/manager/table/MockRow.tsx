@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import Moment from 'react-moment';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { useDispatch } from 'react-redux';
@@ -33,6 +33,39 @@ const MockRow = (props: { mock: MockStored }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [copied, setCopied] = useState(false);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+
+  /**
+   * Opening the editor replaces the preview by a taller block (a name field, the body and the
+   * save controls), which pushes the save buttons past the bottom of the window when the row
+   * was reached by scrolling. Scroll just enough to bring the whole editor back into view, and
+   * leave the page alone when it already fits.
+   */
+  useLayoutEffect(() => {
+    if (!editing) return;
+
+    // Ace sizes itself right after mounting, so the editor is measured on a timer rather than
+    // immediately: measuring too early sees a short block that still fits and scrolls nothing.
+    const timer = window.setTimeout(() => {
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      const { top, bottom } = editor.getBoundingClientRect();
+      const margin = 16;
+
+      if (bottom <= window.innerHeight - margin && top >= 0) return;
+
+      // Prefer showing the end of the editor, where the save controls are, but never push its
+      // top out of view: on an editor taller than the window, the body has to stay reachable.
+      const delta = Math.min(bottom - window.innerHeight + margin, top - margin);
+
+      // `scrollBy` is called without smooth behaviour: the editor has just replaced the
+      // preview, and an animated scroll competes with that reflow instead of following it.
+      window.scrollBy(0, delta);
+    }, 60);
+
+    return () => window.clearTimeout(timer);
+  }, [editing]);
 
   const link = absoluteMockLink(mock.link);
   const body = mock.content ?? '';
@@ -169,7 +202,7 @@ const MockRow = (props: { mock: MockStored }) => {
               ))}
 
             {editing && (
-              <div className="mock-editor">
+              <div className="mock-editor" ref={editorRef}>
                 <label className="mock-field">
                   <span className="mock-field-label">Name</span>
                   <input
