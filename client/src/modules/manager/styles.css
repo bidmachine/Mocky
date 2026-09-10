@@ -490,10 +490,12 @@ div.captures-detail {
 
 div.capture-when-bar {
   /* Sticky: the detail pane scrolls, and on a 625-row payload the controls below were
-     11000px above the viewport — exactly when they are needed */
+     11000px above the viewport — exactly when they are needed.
+     The background is not optional here: without it the payload scrolls through the bar. */
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
+  background: var(--surface);
   display: flex;
   gap: 8px 16px;
   align-items: baseline;
@@ -522,7 +524,7 @@ pre.capture-headers {
 div.capture-tools {
   position: sticky;
   top: 38px;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   gap: 7px;
   align-items: center;
@@ -633,6 +635,9 @@ span.capture-copy .btn {
    toolbar controls around as the reader clicks through a tree */
 /* The slot is always present, so selecting a node does not shift the tree under the cursor */
 div.capture-path-bar {
+  position: sticky;
+  top: 76px;
+  z-index: 2;
   min-height: 30px;
   display: flex;
   align-items: center;
