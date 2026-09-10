@@ -170,13 +170,32 @@
   color: var(--accent);
 }
 
-/* The logo is a dark-on-light image; the theme ships a light variant for dark grounds */
-[data-theme='dark'] .logo-dark {
-  display: none;
+/*
+ * Two logo files ship with the theme: one drawn in dark ink, one in light. Each theme shows the
+ * one that is legible on its ground.
+ *
+ * The vendor stylesheet already has rules for these class names and hides `.logo-light`
+ * outright, so both sides of the swap have to override it.
+ */
+.logo-link .logo-dark {
+  display: inline-block !important;
 }
 
-[data-theme='dark'] .logo-light {
+.logo-link .logo-light {
+  display: none !important;
+}
+
+[data-theme='dark'] .logo-link .logo-dark {
+  display: none !important;
+}
+
+[data-theme='dark'] .logo-link .logo-light {
   display: inline-block !important;
+}
+
+/* The toggle sits after the buttons, so it needs the gap on its left instead */
+.theme-toggle {
+  margin: 0 0 0 6px;
 }
 
 /* ---------------------------------------------------------------------------
