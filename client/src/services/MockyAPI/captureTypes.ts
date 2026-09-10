@@ -3,6 +3,9 @@
  *
  * `body` is text when the payload decoded as UTF-8 and base64 when it did not, which
  * `bodyEncoding` says; a binary payload survives instead of being mangled.
+ *
+ * `bodySize` is how many bytes the server read, which is itself capped: anything larger than the
+ * read limit reports the limit rather than its true size, with `truncated` set.
  */
 export interface CapturedRequest {
   id: string;

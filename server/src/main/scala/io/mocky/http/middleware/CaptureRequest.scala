@@ -59,15 +59,37 @@ object CaptureRequest {
       }
 
   /**
+    * Headers whose value is replaced by a marker.
+    *
+    * The point of the capture log is to show what a caller sent, but a bearer token pasted into
+    * a debugging session should not outlive it in a database, in every backup, and in the reply
+    * to anyone holding the mock's secret. The name is kept — knowing the header was sent is the
+    * useful part — and the value is not.
+    */
+  private val Redacted = Set("authorization", "proxy-authorization", "cookie", "set-cookie", "x-api-key")
+
+  private val RedactedMarker = "<redacted>"
+
+  /**
     * Headers as a JSON object, capped in count.
     *
     * Repeated headers are joined with ", " as HTTP itself allows, so a `Set-Cookie` sent twice is
-    * visible rather than silently replaced.
+    * visible rather than silently replaced. The cap is applied after grouping, so fifty repeats
+    * of one header cannot crowd out every other name.
     */
   private def headers(req: Request[IO], settings: CaptureSettings): Json =
     req.headers.toList
-      .take(settings.maxHeaders)
       .groupBy(_.name.value)
-      .map { case (name, values) => name -> values.map(_.value).mkString(", ") }
+      .toList
+      .sortBy(_._1)
+      .take(settings.maxHeaders)
+      .map {
+        case (name, values) =>
+          val value =
+            if (Redacted.contains(name.toLowerCase)) RedactedMarker
+            else values.map(_.value).mkString(", ")
+          name -> value
+      }
+      .toMap
       .asJson
 }

@@ -77,6 +77,34 @@ class CaptureRequestSpec extends AnyWordSpec with Matchers {
       captured.truncated shouldBe true
     }
 
+    "replace a credential header's value with a marker" in {
+      // The log is read by anyone holding the mock's secret and sits in every backup; a token
+      // pasted in while debugging should not outlive the session.
+      val req = Request[IO](
+        method = Method.POST,
+        uri = uri"/v3/abc",
+        headers = Headers.of(
+          Header("Authorization", "Bearer super-secret-token"),
+          Header("X-Trace", "keep-me")
+        )
+      )
+
+      val recorded = capture(req).headers.asObject
+
+      recorded.flatMap(_("Authorization")).flatMap(_.asString) shouldBe Some("<redacted>")
+      recorded.flatMap(_("X-Trace")).flatMap(_.asString) shouldBe Some("keep-me")
+    }
+
+    "redact regardless of how the header is cased" in {
+      val req = Request[IO](
+        method = Method.POST,
+        uri = uri"/v3/abc",
+        headers = Headers.of(Header("cookie", "session=abc123"))
+      )
+
+      capture(req).headers.asObject.flatMap(_("cookie")).flatMap(_.asString) shouldBe Some("<redacted>")
+    }
+
     "cap how many headers are recorded" in {
       val req = Request[IO](
         Method.POST,

@@ -68,7 +68,9 @@ class MockV3Repository(
           WHERE id IN (
             SELECT id FROM $TABLE
             WHERE expire_at IS NOT NULL AND expire_at <= NOW()
+            ORDER BY expire_at
             LIMIT $limit
+            FOR UPDATE SKIP LOCKED
           )
       """
 
@@ -76,7 +78,7 @@ class MockV3Repository(
 
     /** How many captures this mock wants kept; 0 means capture is off. */
     def GET_CAPTURE_LIMIT(id: UUID): Fragment =
-      fr"SELECT capture_limit FROM $TABLE WHERE id = $id"
+      fr"SELECT capture_limit FROM $TABLE WHERE id = $id AND $NOT_EXPIRED"
 
     def INSERT_CAPTURE(mockId: UUID, req: CapturedRequest, hashIp: String): Fragment =
       fr"""
@@ -126,7 +128,7 @@ class MockV3Repository(
       fr"DELETE FROM $CAPTURES WHERE mock_id = $mockId AND id = $captureId"
 
     def SET_CAPTURE_LIMIT(id: UUID, limit: Int, secret: String): Fragment =
-      fr"UPDATE $TABLE SET capture_limit = $limit WHERE id = $id AND ${checkSecret(secret)}"
+      fr"UPDATE $TABLE SET capture_limit = $limit WHERE id = $id AND ${checkSecret(secret)} AND $NOT_EXPIRED"
 
     def GET_STATS(id: UUID): Fragment =
       fr"SELECT created_at, last_access_at, total_access FROM $TABLE WHERE id = $id AND $NOT_EXPIRED"
@@ -173,8 +175,13 @@ class MockV3Repository(
     def DELETE(id: UUID, secret: String): Fragment =
       fr"DELETE FROM $TABLE WHERE id = $id and ${checkSecret(secret)}"
 
+    /**
+      * Owning a mock is what gates the capture endpoints, so an expired mock must fail it: the
+      * captured traffic holds whatever a caller sent, and a mock that 404s on playback should not
+      * still be handing that back until the sweep gets round to it.
+      */
     def CHECK_SECRET(id: UUID, secret: String): Fragment =
-      fr"SELECT true FROM $TABLE WHERE id = $id and ${checkSecret(secret)}"
+      fr"SELECT true FROM $TABLE WHERE id = $id and ${checkSecret(secret)} AND $NOT_EXPIRED"
 
     def ADMIN_DELETE(id: UUID): Fragment =
       fr"DELETE FROM $TABLE WHERE id = $id"
@@ -218,29 +225,42 @@ class MockV3Repository(
     */
   def touchCaptureAndGetMockResponse(
     id: UUID,
-    request: CapturedRequest,
+    request: => IO[CapturedRequest],
     hashIp: String
   ): IO[Either[MockNotFoundError.type, MockResponse]] = {
     val oldest = DateUtil.past(captureConfig.retention)
 
-    val queries = for {
+    val lookup = for {
       mock <- SQL.GET(id).query[Mock].option
       _ <- SQL.UPDATE_STATS(id).update.run
       limit <- SQL.GET_CAPTURE_LIMIT(id).query[Int].option
-      keep = limit.getOrElse(0).min(captureConfig.maxPerMock)
-      _ <- if (mock.isDefined && keep > 0) {
-             for {
-               _ <- SQL.INSERT_CAPTURE(id, request, hashIp).update.run
-               trimmed <- SQL.TRIM_CAPTURES(id, keep, oldest).update.run
-             } yield trimmed
-           } else {
-             0.pure[ConnectionIO]
-           }
-    } yield mock
+    } yield (mock, limit.getOrElse(0).min(captureConfig.maxPerMock))
 
-    queries.transact(transactor).map {
-      case Some(mock) => Right(MockResponse(mock))
-      case None => Left(MockNotFoundError)
+    lookup.transact(transactor).flatMap {
+      case (None, _) => IO.pure(Left(MockNotFoundError))
+
+      case (Some(mock), keep) if keep <= 0 =>
+        // The common case: capture is off, so the request body is never read. Reading it here
+        // would buffer up to a megabyte per call for a mock that keeps nothing.
+        IO.pure(Right(MockResponse(mock)))
+
+      case (Some(mock), keep) =>
+        val record = for {
+          captured <- request
+          _ <- (for {
+                 _ <- SQL.INSERT_CAPTURE(id, captured, hashIp).update.run
+                 trimmed <- SQL.TRIM_CAPTURES(id, keep, oldest).update.run
+               } yield trimmed).transact(transactor)
+        } yield ()
+
+        // A capture that fails must not cost the caller its response: the mock is what they came
+        // for, and the log is a side effect of serving it.
+        record.attempt
+          .map {
+            case Left(error) => logger.warn(s"Could not record a request for mock $id: ${error.getMessage}")
+            case Right(_) => ()
+          }
+          .as(Right(MockResponse(mock)))
     }
   }
 
@@ -268,13 +288,19 @@ class MockV3Repository(
     * Turn capture on or off for a mock. A captured request can hold whatever a caller sent, so
     * reading and changing the log is gated by the same secret that already guards deletion.
     */
-  def setCaptureLimit(id: UUID, limit: Int, secret: String): IO[Boolean] =
-    SQL
-      .SET_CAPTURE_LIMIT(id, limit.min(captureConfig.maxPerMock).max(0), secret)
-      .update
-      .run
-      .transact(transactor)
-      .map(_ > 0)
+  def setCaptureLimit(id: UUID, limit: Int, secret: String): IO[Boolean] = {
+    val keep = limit.min(captureConfig.maxPerMock).max(0)
+
+    val queries = for {
+      updated <- SQL.SET_CAPTURE_LIMIT(id, keep, secret).update.run
+      // Turning capture off deletes what was captured. The trim only ever runs on a capturing
+      // call, so without this the log of a mock someone stopped capturing would survive for as
+      // long as the mock did — the opposite of what switching it off means.
+      _ <- if (updated > 0 && keep == 0) SQL.DELETE_CAPTURES(id).update.run else 0.pure[ConnectionIO]
+    } yield updated
+
+    queries.transact(transactor).map(_ > 0)
+  }
 
   /** Whether this secret owns the mock, used to gate the capture endpoints. */
   def ownsMock(id: UUID, secret: String): IO[Boolean] =
@@ -305,14 +331,24 @@ class MockV3Repository(
     * @return the uuid of the created mock
     */
   def insert(mock: CreateUpdateMock): IO[MockCreated] = {
-    val queries = for {
-      id <- SQL.INSERT(mock).update.withUniqueGeneratedKeys[UUID]("id")
-      // Pay off a little of the backlog on the way in, so the table stays bounded without a
-      // scheduler. It shares the insert's transaction and is capped, so creation stays cheap.
-      _ <- SQL.SWEEP_EXPIRED(MockV3Repository.SweepBatch).update.run
-    } yield id
+    val created = SQL.INSERT(mock).update.withUniqueGeneratedKeys[UUID]("id").transact(transactor)
 
-    queries.transact(transactor).map(MockCreated.apply)
+    // Pay off a little of the backlog on the way in, so the table stays bounded without a
+    // scheduler — but in its own transaction, committed after the mock is safely stored. Sharing
+    // the insert's transaction meant a sweep that deadlocked against a concurrent creation took
+    // the user's new mock down with it, and held locks on fifty unrelated rows while it ran.
+    val sweep = SQL
+      .SWEEP_EXPIRED(MockV3Repository.SweepBatch)
+      .update
+      .run
+      .transact(transactor)
+      .attempt
+      .map {
+        case Left(error) => logger.warn(s"Could not sweep expired mocks: ${error.getMessage}")
+        case Right(_) => ()
+      }
+
+    created.flatTap(_ => sweep).map(MockCreated.apply)
   }
 
   /**

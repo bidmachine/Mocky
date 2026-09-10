@@ -33,10 +33,14 @@ class MockRunnerService(repoV2: MockV2Repository, repoV3: MockV3Repository, sett
 
     // Fetch and play a "last version" mock, recording the call when the mock captures
     case req @ _ -> "v3" /: UUIDVar(id) /: suffix =>
-      val played = for {
-        captured <- CaptureRequest.from(req, suffix.toString, settings.capture)
-        result <- repoV3.touchCaptureAndGetMockResponse(id, captured, HttpUtil.getIP(req))
-      } yield result
+      // Passed unevaluated: the repository reads the body only for a mock that actually captures,
+      // so a plain call — or one to an id that does not exist — never buffers the payload.
+      val played =
+        repoV3.touchCaptureAndGetMockResponse(
+          id,
+          CaptureRequest.from(req, suffix.toString, settings.capture),
+          HttpUtil.getIP(req)
+        )
 
       played.flatMap {
         case Left(MockNotFoundError) => NotFound()
