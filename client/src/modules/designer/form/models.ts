@@ -44,7 +44,7 @@ export const newMockValidationSchema = Yup.object({
   contentType: Yup.string().max(200).required('Please define the content-type of your mock.'),
   charset: Yup.string().max(50).required('Please select the charset of your mock.'),
   headers: Yup.string().trim().max(1000).test(validateJsonHeaders).optional(),
-  name: Yup.string().max(100).optional(),
+  name: Yup.string().trim().max(100).required('Please give your mock a name.'),
   body: Yup.string().trim().ensure().max(1000000).optional(),
   secret: Yup.string().max(64).optional(),
 });

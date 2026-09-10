@@ -39,8 +39,8 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
 
                 <div className="row">
                   <div className="col-md-12">
-                    <Label htmlFor="name">Mock name</Label>
-                    <OptionalTag />
+                    <Label htmlFor="name" required>Mock name</Label>
+                    <RequiredTag />
                     <FastField
                       id="name"
                       type="string"
