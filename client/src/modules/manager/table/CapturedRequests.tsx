@@ -27,7 +27,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const [search, setSearch] = useState('');
   const [path, setPath] = useState<string | undefined>(undefined);
   const [raw, setRaw] = useState(false);
-  const [copied, setCopied] = useState<'body' | 'curl' | undefined>(undefined);
+  const [copied, setCopied] = useState<'raw' | 'json' | undefined>(undefined);
 
   const enabled = (mock.captureLimit ?? 0) > 0;
 
@@ -122,20 +122,21 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
   const current = items[selected];
 
-  const remember = (what: 'body' | 'curl') => {
+  const remember = (what: 'raw' | 'json') => {
     setCopied(what);
     window.setTimeout(() => setCopied(undefined), 1400);
   };
 
-  /** The payload as it arrived, so what is pasted matches what the server received. */
-  const copyBody = (request: CapturedRequest) => {
-    copyText(request.body ?? '');
-    remember('body');
+  /** The payload formatted, which is what the reader is looking at. */
+  const copyJson = (request: CapturedRequest) => {
+    copyText(prettify(request));
+    remember('json');
   };
 
-  const copyCurl = (request: CapturedRequest) => {
-    copyText(asCurl(request, mock.link));
-    remember('curl');
+  /** The payload byte for byte as it arrived, for pasting somewhere that must match exactly. */
+  const copyRaw = (request: CapturedRequest) => {
+    copyText(request.body ?? '');
+    remember('raw');
   };
 
   return (
@@ -260,11 +261,11 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                         onChange={(event) => setSearch(event.target.value)}
                       />
                       <span className="capture-copy">
-                        <button type="button" className="btn btn--sm" onClick={() => copyBody(current)}>
-                          {copied === 'body' ? 'Copied' : 'Copy body'}
+                        <button type="button" className="btn btn--sm" onClick={() => copyJson(current)}>
+                          {copied === 'json' ? 'Copied' : 'Copy JSON'}
                         </button>
-                        <button type="button" className="btn btn--sm" onClick={() => copyCurl(current)}>
-                          {copied === 'curl' ? 'Copied' : 'Copy as curl'}
+                        <button type="button" className="btn btn--sm" onClick={() => copyRaw(current)}>
+                          {copied === 'raw' ? 'Copied' : 'Copy raw'}
                         </button>
                       </span>
                     </div>
@@ -308,29 +309,6 @@ const clockOf = (iso: string): string => {
  */
 const prettify = (request: CapturedRequest): string =>
   request.body === undefined ? '' : formatBody(request.body, request.contentType ?? '');
-
-/**
- * Rebuild the call as a curl command.
- *
- * `Host` and `Content-Length` are dropped: curl sets both itself, and passing the recorded ones
- * through produces a command that fails or lies about its own body.
- */
-const asCurl = (request: CapturedRequest, link: string): string => {
-  const url = `${link}${request.path}${request.query ? `?${request.query}` : ''}`;
-
-  const headers = Object.entries(request.headers)
-    .filter(([name]) => !['host', 'content-length'].includes(name.toLowerCase()))
-    .map(([name, value]) => `  -H ${quote(`${name}: ${value}`)}`);
-
-  const parts = [`curl -X ${request.method} ${quote(url)}`, ...headers];
-
-  if (request.body !== undefined) parts.push(`  -d ${quote(request.body)}`);
-
-  return parts.join(' \\\n');
-};
-
-/** Single-quote for a POSIX shell, where the only character needing care is the quote itself. */
-const quote = (value: string): string => `'${value.split("'").join(`'\\''`)}'`;
 
 const copyText = (text: string) => {
   if (navigator.clipboard) {
