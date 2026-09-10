@@ -329,7 +329,8 @@ div.captures-split {
 }
 
 div.captures-list {
-  flex: 0 1 clamp(280px, 26%, 420px);
+  /* `flex-shrink: 0`: a wide payload used to squeeze this to 3px and take the pane with it */
+  flex: 0 0 clamp(280px, 26%, 420px);
   max-height: 520px;
   overflow-y: auto;
   display: flex;
@@ -475,8 +476,11 @@ span.capture-trunc {
 }
 
 div.captures-detail {
-  flex: 1 1 auto;
+  /* `min-width: 0` alone is not enough once a child has intrinsic width: the basis has to be
+     zero as well, or a 65 KB unbroken line sets the pane's size */
+  flex: 1 1 0;
   min-width: 0;
+  max-width: 100%;
   max-height: 520px;
   overflow: auto;
   background: var(--surface);
@@ -502,6 +506,8 @@ div.capture-when-bar {
 }
 
 pre.capture-headers {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-family: 'Source Code Pro', monospace;
   font-size: 12px;
   line-height: 1.65;
@@ -627,6 +633,9 @@ div.capture-clip .btn {
 }
 
 pre.capture-raw {
+  /* Without an explicit cap, an unbroken run of characters sets the width of everything above */
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-family: 'Source Code Pro', monospace;
   font-size: 12px;
   line-height: 1.6;
