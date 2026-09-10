@@ -6,7 +6,7 @@ import MockyAPI from '../../../services/MockyAPI/MockyAPI';
 import { CapturedRequest } from '../../../services/MockyAPI/captureTypes';
 import { setCaptureLimit } from '../../../redux/mocks/slice';
 import { MockStored } from '../../../redux/mocks/types';
-import { humanSize } from '../../../services/format';
+import { formatBody, humanSize } from '../../../services/format';
 
 /** What a mock keeps once capture is switched on. */
 const DEFAULT_LIMIT = 100;
@@ -27,6 +27,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const [search, setSearch] = useState('');
   const [path, setPath] = useState<string | undefined>(undefined);
   const [raw, setRaw] = useState(false);
+  const [copied, setCopied] = useState<'body' | 'curl' | undefined>(undefined);
 
   const enabled = (mock.captureLimit ?? 0) > 0;
 
@@ -120,6 +121,22 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   };
 
   const current = items[selected];
+
+  const remember = (what: 'body' | 'curl') => {
+    setCopied(what);
+    window.setTimeout(() => setCopied(undefined), 1400);
+  };
+
+  /** The payload as it arrived, so what is pasted matches what the server received. */
+  const copyBody = (request: CapturedRequest) => {
+    copyText(request.body ?? '');
+    remember('body');
+  };
+
+  const copyCurl = (request: CapturedRequest) => {
+    copyText(asCurl(request, mock.link));
+    remember('curl');
+  };
 
   return (
     <div className="captures">
@@ -242,11 +259,20 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                       />
-                      {path && <span className="capture-path-value">{path}</span>}
+                      <span className="capture-copy">
+                        <button type="button" className="btn btn--sm" onClick={() => copyBody(current)}>
+                          {copied === 'body' ? 'Copied' : 'Copy body'}
+                        </button>
+                        <button type="button" className="btn btn--sm" onClick={() => copyCurl(current)}>
+                          {copied === 'curl' ? 'Copied' : 'Copy as curl'}
+                        </button>
+                      </span>
                     </div>
 
+                    {path && <div className="capture-path-bar">{path}</div>}
+
                     {raw || parseJson(current.body) === undefined ? (
-                      <pre className="capture-raw">{current.body}</pre>
+                      <pre className="capture-raw">{prettify(current)}</pre>
                     ) : (
                       <JsonTree
                         value={parseJson(current.body)}
@@ -274,6 +300,42 @@ const clockOf = (iso: string): string => {
     `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}` +
     `.${pad(date.getUTCMilliseconds(), 3)}`
   );
+};
+
+/**
+ * The raw view is pretty-printed too: a captured bid request arrives minified, and a single
+ * 5000-character line is no more readable here than it is in the tree.
+ */
+const prettify = (request: CapturedRequest): string =>
+  request.body === undefined ? '' : formatBody(request.body, request.contentType ?? '');
+
+/**
+ * Rebuild the call as a curl command.
+ *
+ * `Host` and `Content-Length` are dropped: curl sets both itself, and passing the recorded ones
+ * through produces a command that fails or lies about its own body.
+ */
+const asCurl = (request: CapturedRequest, link: string): string => {
+  const url = `${link}${request.path}${request.query ? `?${request.query}` : ''}`;
+
+  const headers = Object.entries(request.headers)
+    .filter(([name]) => !['host', 'content-length'].includes(name.toLowerCase()))
+    .map(([name, value]) => `  -H ${quote(`${name}: ${value}`)}`);
+
+  const parts = [`curl -X ${request.method} ${quote(url)}`, ...headers];
+
+  if (request.body !== undefined) parts.push(`  -d ${quote(request.body)}`);
+
+  return parts.join(' \\\n');
+};
+
+/** Single-quote for a POSIX shell, where the only character needing care is the quote itself. */
+const quote = (value: string): string => `'${value.split("'").join(`'\\''`)}'`;
+
+const copyText = (text: string) => {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).catch(() => undefined);
+  }
 };
 
 /** Undefined when the body is not JSON, which sends the viewer to the raw view. */

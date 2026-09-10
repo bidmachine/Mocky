@@ -441,11 +441,30 @@ input.capture-find {
   border-radius: 3px;
 }
 
-span.capture-path-value {
+/* Copy actions sit at the end of the toolbar, away from the view and search controls */
+span.capture-copy {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+span.capture-copy .btn {
+  margin: 0;
+  padding: 3px 12px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+/* The selected node's path gets its own line: it can be long, and it should not push the
+   toolbar controls around as the reader clicks through a tree */
+div.capture-path-bar {
   font-family: 'Source Code Pro', monospace;
   font-size: 11px;
   color: var(--path);
   word-break: break-all;
+  padding: 6px 11px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-sunken);
 }
 
 pre.capture-raw {
