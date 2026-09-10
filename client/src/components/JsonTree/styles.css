@@ -26,7 +26,10 @@
 }
 
 .jsontree .jt-twist {
-  width: 12px;
+  /* The hit area was 12x19; a fold control has to be reachable with a finger */
+  width: 20px;
+  min-height: 20px;
+  text-align: center;
   flex: none;
   color: var(--text-faint);
   cursor: pointer;

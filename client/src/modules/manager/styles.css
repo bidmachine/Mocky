@@ -189,7 +189,7 @@ button.mock-tab {
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   padding: 8px 0;
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--text-faint);
   cursor: pointer;
 }
@@ -211,6 +211,7 @@ div.captures {
 }
 
 div.captures-bar {
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -300,7 +301,7 @@ div.captures-empty {
   text-align: center;
   padding: 26px 16px;
   color: var(--text-faint);
-  font-size: 13.5px;
+  font-size: 13px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -308,12 +309,12 @@ div.captures-empty {
 }
 
 div.captures-hint {
-  font-size: 12.5px;
+  font-size: 13px;
 }
 
 code.captures-cmd {
   font-family: 'Source Code Pro', monospace;
-  font-size: 11.5px;
+  font-size: 12px;
   background: var(--surface-sunken);
   padding: 6px 11px;
   border-radius: 3px;
@@ -337,9 +338,10 @@ div.captures-list {
 }
 
 button.capture-row {
+  min-height: 44px;
   color: var(--text);
   display: grid;
-  grid-template-columns: 52px 1fr auto auto;
+  grid-template-columns: 52px 1fr auto auto auto;
   gap: 8px;
   align-items: center;
   text-align: left;
@@ -349,7 +351,7 @@ button.capture-row {
   border-radius: 3px;
   cursor: pointer;
   font-family: 'Source Code Pro', monospace;
-  font-size: 11.5px;
+  font-size: 12px;
 }
 
 button.capture-row:hover {
@@ -358,8 +360,10 @@ button.capture-row:hover {
 
 button.capture-row.on {
   border-color: var(--accent);
-  background: var(--surface-raised);
+  /* A 1px border was doing all the work at 1.10:1 against the unselected row */
+  background: var(--surface-selected);
   color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 span.capture-method {
@@ -380,12 +384,17 @@ span.capture-path {
 
 span.capture-when {
   color: var(--text-faint);
-  font-size: 10.5px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
 /* Per-row delete, revealed on hover so it does not compete with the request itself */
 span.capture-del {
+  min-width: 26px;
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--text-faint);
   font-size: 15px;
   line-height: 1;
@@ -419,10 +428,47 @@ span.capture-del:focus-visible {
   color: #fff !important;
 }
 
+span.capture-size {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Match position, next to the box it belongs to */
+span.capture-matches {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* Headers fold away: they were taking a third of the pane for mostly constant noise */
+details.capture-headers-box {
+  border-bottom: 1px solid var(--border);
+}
+
+details.capture-headers-box > summary {
+  cursor: pointer;
+  padding: 8px 11px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  user-select: none;
+}
+
+details.capture-headers-box > summary:hover {
+  color: var(--text);
+}
+
+details.capture-headers-box pre.capture-headers {
+  border-bottom: none;
+  padding-top: 0;
+}
+
 span.capture-trunc {
   background: var(--danger-bg);
   color: var(--danger);
-  font-size: 10px;
+  font-size: 11px;
   padding: 1px 5px;
   border-radius: 2px;
   font-family: 'Source Code Pro', monospace;
@@ -451,13 +497,13 @@ div.capture-when-bar {
   padding: 9px 11px;
   border-bottom: 1px solid var(--border);
   font-family: 'Source Code Pro', monospace;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text);
 }
 
 pre.capture-headers {
   font-family: 'Source Code Pro', monospace;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.65;
   margin: 0;
   padding: 10px 11px;
@@ -483,14 +529,14 @@ div.capture-tools {
 div.capture-tools .btn {
   margin: 0;
   padding: 3px 12px;
-  font-size: 11.5px;
+  font-size: 12px;
 }
 
 input.capture-find {
   flex: 1 1 140px;
   min-width: 110px;
   font-family: 'Source Code Pro', monospace;
-  font-size: 11.5px;
+  font-size: 12px;
   padding: 4px 9px;
   border: 1px solid var(--border-strong);
   border-radius: 3px;
@@ -506,30 +552,117 @@ span.capture-copy {
 span.capture-copy .btn {
   margin: 0;
   padding: 3px 12px;
-  font-size: 11.5px;
+  font-size: 12px;
   white-space: nowrap;
+  /* Fixed width: "Copied" is 20px narrower than "Copy JSON" and dragged the next button
+     under the pointer mid-click */
+  min-width: 92px;
+  text-align: center;
 }
 
 /* The selected node's path gets its own line: it can be long, and it should not push the
    toolbar controls around as the reader clicks through a tree */
+/* The slot is always present, so selecting a node does not shift the tree under the cursor */
 div.capture-path-bar {
-  font-family: 'Source Code Pro', monospace;
-  font-size: 11px;
-  color: var(--path);
-  word-break: break-all;
-  padding: 6px 11px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-sunken);
 }
 
+button.capture-path-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--path);
+  text-align: left;
+  word-break: break-all;
+}
+
+span.capture-path-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0 5px;
+  flex: none;
+}
+
+button.capture-path-copy:hover span.capture-path-hint {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+span.capture-path-empty {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
 pre.capture-raw {
   font-family: 'Source Code Pro', monospace;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.6;
   margin: 0;
   padding: 10px 11px;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+@media (max-width: 620px) {
+  /* The mocks table keeps fixed column widths that add up to more than a phone viewport,
+     so the whole page scrolls sideways. The response badges are the column to drop. */
+  table.table--mocks {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  table.table--mocks th:nth-child(3),
+  table.table--mocks td.mock-badges {
+    display: none;
+  }
+
+  table.table--mocks th:last-child,
+  table.table--mocks td.mock-actions {
+    width: auto;
+  }
+
+  td.mock-name {
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 560px) {
+  /* The bar was 91px wider than a 375px viewport, and the meta line collapsed into a
+     26px-wide column five lines tall */
+  div.captures-bar {
+    gap: 8px;
+  }
+
+  span.capture-meta {
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  span.capture-actions {
+    margin-left: 0;
+  }
+
+  button.capture-row {
+    grid-template-columns: 46px 1fr auto;
+  }
+
+  span.capture-size {
+    display: none;
+  }
 }
 
 @media (max-width: 900px) {

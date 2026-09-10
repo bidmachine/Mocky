@@ -27,8 +27,11 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const [search, setSearch] = useState('');
   const [path, setPath] = useState<string | undefined>(undefined);
   const [raw, setRaw] = useState(false);
-  const [copied, setCopied] = useState<'raw' | 'json' | undefined>(undefined);
+  const [copied, setCopied] = useState<'raw' | 'json' | 'path' | undefined>(undefined);
   const [confirmingClear, setConfirmingClear] = useState(false);
+  const [matches, setMatches] = useState(0);
+  const [atMatch, setAtMatch] = useState(0);
+  const detailRef = useRef<HTMLDivElement | null>(null);
 
   const enabled = (mock.captureLimit ?? 0) > 0;
 
@@ -139,13 +142,28 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
   const current = items[selected];
 
+  /**
+   * Step through the highlighted matches and scroll each one into view.
+   *
+   * Without this a search reports hits that are thousands of pixels down the pane, which reads
+   * as a search that found nothing.
+   */
+  const goToMatch = (index: number) => {
+    const marks = detailRef.current?.querySelectorAll('mark');
+    if (!marks || marks.length === 0) return;
+
+    const next = ((index % marks.length) + marks.length) % marks.length;
+    setAtMatch(next);
+    marks[next].scrollIntoView({ block: 'center' });
+  };
+
   // A body that is not JSON has no tree and cannot be searched, so the controls that imply
   // otherwise are disabled rather than left offering something that does nothing.
   const parsed = current?.body !== undefined ? parseJson(current.body) : undefined;
   const isJson = parsed !== undefined;
   const showRaw = raw || !isJson;
 
-  const remember = (what: 'raw' | 'json') => {
+  const remember = (what: 'raw' | 'json' | 'path') => {
     setCopied(what);
     window.setTimeout(() => setCopied(undefined), 1400);
   };
@@ -222,7 +240,12 @@ const CapturedRequests = (props: { mock: MockStored }) => {
           {enabled ? (
             <code className="captures-cmd">curl -X POST {mock.link} -d '&#123;"ping":1&#125;'</code>
           ) : (
-            <div className="captures-hint">Turn it on and the next calls to this URL will show up here.</div>
+            <>
+              <div className="captures-hint">Requests to this URL are not being recorded.</div>
+              <button type="button" className="btn btn--primary btn--sm" onClick={toggle}>
+                Start capturing
+              </button>
+            </>
           )}
         </div>
       )}
@@ -245,8 +268,13 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                   {item.path}
                   {item.query ? `?${item.query}` : ''}
                 </span>
+                <span className="capture-size">{humanSize(item.body)}</span>
                 <span className="capture-when">{clockOf(item.receivedAt)}</span>
-                {item.truncated && <span className="capture-trunc">truncated</span>}
+                {item.truncated && (
+                  <span className="capture-trunc" title="Body was truncated">
+                    !
+                  </span>
+                )}
                 <span
                   className="capture-del"
                   role="button"
@@ -270,7 +298,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
             ))}
           </div>
 
-          <div className="captures-detail">
+          <div className="captures-detail" ref={detailRef}>
             {current && (
               <>
                 <div className="capture-when-bar">
@@ -285,12 +313,18 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                   )}
                 </div>
 
-                <pre className="capture-headers">
-                  {`${current.method} ${current.path}${current.query ? `?${current.query}` : ''}\n`}
-                  {Object.entries(current.headers)
-                    .map(([key, value]) => `${key}: ${value}`)
-                    .join('\n')}
-                </pre>
+                <details className="capture-headers-box">
+                  <summary>
+                    {Object.keys(current.headers).length} headers
+                    {current.contentType ? ` · ${current.contentType}` : ''}
+                  </summary>
+                  <pre className="capture-headers">
+                    {`${current.method} ${current.path}${current.query ? `?${current.query}` : ''}\n`}
+                    {Object.entries(current.headers)
+                      .map(([key, value]) => `${key}: ${value}`)
+                      .join('\n')}
+                  </pre>
+                </details>
 
                 {current.body === undefined && <div className="captures-empty">No request body.</div>}
 
@@ -319,9 +353,23 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                         aria-label="Search payload"
                         placeholder={isJson ? 'find: bidfloor, imp…' : 'not searchable — raw body'}
                         value={search}
-                        onChange={(event) => setSearch(event.target.value)}
+                        onChange={(event) => {
+                          setSearch(event.target.value);
+                          setAtMatch(0);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault();
+                            goToMatch(event.shiftKey ? atMatch - 1 : atMatch + 1);
+                          }
+                        }}
                         disabled={!isJson}
                       />
+                      {search.trim() !== '' && isJson && (
+                        <span className="capture-matches" role="status">
+                          {matches === 0 ? 'no matches' : `${atMatch + 1} of ${matches}`}
+                        </span>
+                      )}
                       <span className="capture-copy">
                         {isJson && (
                           <button type="button" className="btn btn--sm" onClick={() => copyJson(current)}>
@@ -334,7 +382,24 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                       </span>
                     </div>
 
-                    {path && <div className="capture-path-bar">{path}</div>}
+                    <div className="capture-path-bar">
+                      {path ? (
+                        <button
+                          type="button"
+                          className="capture-path-copy"
+                          title="Copy this path"
+                          onClick={() => {
+                            copyText(path);
+                            remember('path');
+                          }}
+                        >
+                          <span className="capture-path-text">{path}</span>
+                          <span className="capture-path-hint">{copied === 'path' ? 'copied' : 'copy'}</span>
+                        </button>
+                      ) : (
+                        <span className="capture-path-empty">select a node to get its path</span>
+                      )}
+                    </div>
 
                     {showRaw ? (
                       <pre className="capture-raw">{prettify(current)}</pre>
@@ -343,6 +408,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                         value={parsed}
                         search={search.trim().toLowerCase() || undefined}
                         onSelectPath={setPath}
+                        onMatchCount={setMatches}
                       />
                     )}
                   </>

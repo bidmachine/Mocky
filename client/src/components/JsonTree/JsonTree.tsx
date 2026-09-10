@@ -9,6 +9,8 @@ interface JsonTreeProps {
   /** Lowercased search term; matching branches open and matching text is highlighted. */
   search?: string;
   onSelectPath?: (path: string) => void;
+  /** Reports how many marks were rendered, so the toolbar can show a count. */
+  onMatchCount?: (count: number) => void;
 }
 
 /**
@@ -18,11 +20,23 @@ interface JsonTreeProps {
  * what tells you where to look. Nodes therefore start folded, arrays and objects report how many
  * entries they hold, and every value carries the path that addresses it.
  */
-const JsonTree = ({ value, search, onSelectPath }: JsonTreeProps) => (
-  <div className="jsontree" role="tree" aria-label="Request payload">
-    <TreeNode value={value} name={null} path="" depth={0} search={search} onSelectPath={onSelectPath} />
-  </div>
-);
+const JsonTree = ({ value, search, onSelectPath, onMatchCount }: JsonTreeProps) => {
+  const container = React.useRef<HTMLDivElement | null>(null);
+
+  // Counting the rendered marks is what the reader actually sees, rather than a second
+  // traversal that could disagree with the highlighting.
+  React.useEffect(() => {
+    if (!onMatchCount) return;
+
+    onMatchCount(search ? container.current?.querySelectorAll('mark').length ?? 0 : 0);
+  }, [search, value, onMatchCount]);
+
+  return (
+    <div className="jsontree" role="tree" aria-label="Request payload" ref={container}>
+      <TreeNode value={value} name={null} path="" depth={0} search={search} onSelectPath={onSelectPath} />
+    </div>
+  );
+};
 
 interface NodeProps {
   value: Json;

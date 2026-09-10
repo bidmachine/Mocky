@@ -20,6 +20,8 @@
   --border: #dee2e6;
   --border-strong: #ced4da;
   --accent: #4a90e2;
+  --accent-hover: #3a7cc8;
+  --surface-selected: #e8f0fb;
   --accent-text: #ffffff;
   --code-key: #0550ae;
   --code-str: #1a7f37;
@@ -53,6 +55,8 @@
   --border: #2a2d38;
   --border-strong: #3b3f4d;
   --accent: #5b9ce6;
+  --accent-hover: #7bb0ec;
+  --surface-selected: #252a36;
   --accent-text: #0d1016;
   --code-key: #79b8ff;
   --code-str: #85d996;
@@ -196,6 +200,50 @@
 /* The toggle sits after the buttons, so it needs the gap on its left instead */
 .theme-toggle {
   margin: 0 0 0 6px;
+}
+
+/*
+ * Navigation buttons.
+ *
+ * The theme leaves these at weight 400 with 3.96px vertical padding and a border that does not
+ * match the fill, so they read as flat labels rather than controls, and the toggle beside them
+ * was a different height and radius again. One set of values for all three.
+ */
+.bar .btn,
+.theme-toggle {
+  height: 36px;
+  border-radius: 5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.bar .btn {
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.bar .btn:not(.btn--primary):hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.bar .btn:not(.btn--primary):hover .btn__text {
+  color: var(--accent) !important;
+}
+
+/* The primary action should read as one solid shape, not a fill inside a mismatched border */
+.bar .btn--primary,
+[data-theme='dark'] .bar .btn--primary {
+  border-color: var(--accent) !important;
+}
+
+.bar .btn--primary:hover,
+[data-theme='dark'] .bar .btn--primary:hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
 }
 
 /* ---------------------------------------------------------------------------
