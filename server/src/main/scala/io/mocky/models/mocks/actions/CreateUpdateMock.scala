@@ -48,7 +48,9 @@ object CreateUpdateMock {
           charset <- c.downField("charset").as[String]
           headers <- c.downField("headers").as[Option[CreateUpdateMockHeaders]]
           secret <- c.downField("secret").read(StringRules.maxLength(settings.secretMaxLength))
-          expiration <- c.downField("expiration").as[Expiration]
+          // Absent means "nobody chose", which is how a script or an agent posts; it gets the
+          // default lifetime rather than a decoding error or an immortal mock.
+          expiration <- c.downField("expiration").as[Option[Expiration]].map(_.getOrElse(Expiration.Default))
         } yield CreateUpdateMock(name, content, contentType, status, charset, headers, secret, expiration)
     }
 

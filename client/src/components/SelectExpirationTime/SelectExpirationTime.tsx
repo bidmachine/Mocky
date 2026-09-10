@@ -9,6 +9,7 @@ const SelectExpirationTime = (props: { name: string }) => {
       <option value="never">Never expire</option>
       <option value="1year">Expire in 1 year</option>
       <option value="1month">Expire in 1 month</option>
+      <option value="2weeks">Expire in 2 weeks</option>
       <option value="1week">Expire in 1 week</option>
       <option value="1day">Expire in 1 day</option>
     </Field>

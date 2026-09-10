@@ -44,8 +44,33 @@ class MockV3Repository(
 
     private def checkSecret(secret: String) = fr"secret_token = crypt($secret, secret_token)"
 
+    /**
+      * A mock past its `expire_at` reads as absent. The column has been written since the first
+      * migration but never checked, so every expiry ever chosen was silently ignored; playing an
+      * expired mock now returns the same 404 as one that was deleted.
+      */
+    private val NOT_EXPIRED: Fragment = fr"(expire_at IS NULL OR expire_at > NOW())"
+
     def GET(id: UUID): Fragment =
-      fr"SELECT content, status, content_type, charset, headers FROM $TABLE WHERE id = $id"
+      fr"SELECT content, status, content_type, charset, headers FROM $TABLE WHERE id = $id AND $NOT_EXPIRED"
+
+    /**
+      * Clear out a bounded slice of what has expired.
+      *
+      * There is no scheduler in this application, so the sweep rides along with mock creation the
+      * same way the capture trim rides along with capture insert. The limit keeps one unlucky
+      * caller from paying for a decade of accumulated rows, and captures follow through
+      * `ON DELETE CASCADE`.
+      */
+    def SWEEP_EXPIRED(limit: Int): Fragment =
+      fr"""
+          DELETE FROM $TABLE
+          WHERE id IN (
+            SELECT id FROM $TABLE
+            WHERE expire_at IS NOT NULL AND expire_at <= NOW()
+            LIMIT $limit
+          )
+      """
 
     private val CAPTURES = Fragment.const("mock_requests")
 
@@ -104,7 +129,7 @@ class MockV3Repository(
       fr"UPDATE $TABLE SET capture_limit = $limit WHERE id = $id AND ${checkSecret(secret)}"
 
     def GET_STATS(id: UUID): Fragment =
-      fr"SELECT created_at, last_access_at, total_access FROM $TABLE WHERE id = $id"
+      fr"SELECT created_at, last_access_at, total_access FROM $TABLE WHERE id = $id AND $NOT_EXPIRED"
 
     def UPDATE_STATS(id: UUID): Fragment =
       fr"UPDATE $TABLE SET last_access_at = ${DateUtil.now}, total_access = total_access + 1 WHERE id = $id"
@@ -280,8 +305,14 @@ class MockV3Repository(
     * @return the uuid of the created mock
     */
   def insert(mock: CreateUpdateMock): IO[MockCreated] = {
-    SQL.INSERT(mock).update.withUniqueGeneratedKeys[UUID]("id").transact(transactor)
-      .map(MockCreated.apply)
+    val queries = for {
+      id <- SQL.INSERT(mock).update.withUniqueGeneratedKeys[UUID]("id")
+      // Pay off a little of the backlog on the way in, so the table stays bounded without a
+      // scheduler. It shares the insert's transaction and is capped, so creation stays cheap.
+      _ <- SQL.SWEEP_EXPIRED(MockV3Repository.SweepBatch).update.run
+    } yield id
+
+    queries.transact(transactor).map(MockCreated.apply)
   }
 
   /**
@@ -327,4 +358,15 @@ class MockV3Repository(
     SQL.CHECK_SECRET(id, payload.secret).query[Boolean].option.transact(transactor).map(_.getOrElse(false))
   }
 
+}
+
+object MockV3Repository {
+
+  /**
+    * How many expired mocks one creation clears.
+    *
+    * Small enough that creating a mock stays fast even against a long backlog, large enough that
+    * normal traffic drains faster than it accumulates.
+    */
+  private[repositories] val SweepBatch = 50
 }

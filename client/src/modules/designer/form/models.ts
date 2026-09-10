@@ -10,7 +10,9 @@ export const initialState: NewMockFormValues = {
   body: '',
   secret: '',
   name: '',
-  expiration: 'never',
+  // A mock nobody gave an end to used to live forever, which is how the table filled up with
+  // mocks whose secret is long lost. Anyone who wants one permanently can still pick "Never".
+  expiration: '2weeks',
 };
 
 // Check if the header field is a "basic" object with string key and string value

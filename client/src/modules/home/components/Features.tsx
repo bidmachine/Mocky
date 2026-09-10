@@ -10,8 +10,8 @@ export default () => (
             <i className="icon color--primary icon-Money-2 icon--sm"></i>
             <h5>Free &amp; Unlimited</h5>
             <p>
-              Mocky is free to use, no ads, no hidden subscriptions or service limits. Your mocks will be available{' '}
-              <strong>forever</strong> if you call it at least one time per year, but without any{' '}
+              Mocky is free to use, no ads, no hidden subscriptions or service limits. A mock lasts{' '}
+              <strong>two weeks</strong> by default, and you can set it to never expire, but without any{' '}
               <NavLink to="/faq">guarantee</NavLink>.
             </p>
           </div>
