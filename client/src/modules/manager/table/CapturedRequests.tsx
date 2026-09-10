@@ -34,7 +34,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
     setLoading(false);
 
     if (page === undefined) {
-      setError('Could not read the captured requests. The mock may have been deleted, or the API is unreachable.');
+      setError('Could not read the captured requests. The mock may no longer exist on the server, or the API is unreachable.');
       return;
     }
 
@@ -56,7 +56,9 @@ const CapturedRequests = (props: { mock: MockStored }) => {
       // Switching capture off only stops new records — what was already collected stays readable
       load();
     } else {
-      setError('Could not change the capture setting.');
+      // A 404 here means the mock is in this browser's list but not on the server — the usual
+      // cause is a mock deleted elsewhere, or a database this browser has outlived.
+      setError('This mock no longer exists on the server, so capture cannot be changed for it.');
     }
   };
 

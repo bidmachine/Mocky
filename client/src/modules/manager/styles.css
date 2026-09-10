@@ -325,6 +325,7 @@ div.captures-list {
 }
 
 button.capture-row {
+  color: var(--text);
   display: grid;
   grid-template-columns: 52px 1fr auto;
   gap: 8px;
@@ -346,6 +347,7 @@ button.capture-row:hover {
 button.capture-row.on {
   border-color: var(--accent);
   background: var(--surface-raised);
+  color: var(--text);
 }
 
 span.capture-method {

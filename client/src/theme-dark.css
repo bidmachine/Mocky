@@ -38,6 +38,9 @@
   --method-delete: #9e3a31;
   --path: #a9662a;
   --delete: #dc3545;
+  --info-bg: #e7f1fb;
+  --info-border: #b8d4ee;
+  --info-text: #1c3f5e;
 }
 
 [data-theme='dark'] {
@@ -68,6 +71,9 @@
   --method-delete: #f0918a;
   --path: #e0a458;
   --delete: #f0918a;
+  --info-bg: #16273a;
+  --info-border: #24425f;
+  --info-text: #9fc4e4;
 }
 
 /* ---------------------------------------------------------------------------
@@ -133,10 +139,17 @@
   color: var(--text-faint) !important;
 }
 
-[data-theme='dark'] .btn:not(.btn--primary) {
+/* The theme colours the inner label separately, so styling the button alone leaves
+   near-black text sitting on the dark ground */
+[data-theme='dark'] .btn:not(.btn--primary),
+[data-theme='dark'] .btn:not(.btn--primary) .btn__text {
   background: var(--surface-raised);
   color: var(--text);
   border-color: var(--border-strong);
+}
+
+[data-theme='dark'] .btn:not(.btn--primary) .btn__text {
+  background: none;
 }
 
 [data-theme='dark'] table,
@@ -165,6 +178,60 @@
 [data-theme='dark'] .logo-light {
   display: inline-block !important;
 }
+
+/* ---------------------------------------------------------------------------
+ * Surfaces the vendor theme still paints light, found by walking the rendered
+ * page for pale backgrounds and borders rather than by guessing.
+ * ------------------------------------------------------------------------- */
+
+/* Pale-blue notice banners: near-white text on a light ground is unreadable */
+[data-theme='dark'] .alert,
+[data-theme='dark'] .bg--primary {
+  background: var(--info-bg) !important;
+  border-color: var(--info-border) !important;
+  color: var(--info-text) !important;
+}
+
+[data-theme='dark'] .alert strong,
+[data-theme='dark'] .bg--primary strong {
+  color: var(--info-text) !important;
+}
+
+/* Primary buttons carried a blue label on a blue ground */
+[data-theme='dark'] .btn--primary,
+[data-theme='dark'] .btn--primary .btn__text {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-text) !important;
+}
+
+/* Light chrome borders (#d3d3d3, #ececec) read as white outlines on a dark ground */
+[data-theme='dark'] .btn,
+[data-theme='dark'] .table,
+[data-theme='dark'] .border--round,
+[data-theme='dark'] pre,
+[data-theme='dark'] .boxed {
+  border-color: var(--border) !important;
+}
+
+[data-theme='dark'] .badge-light {
+  background: var(--surface-sunken) !important;
+  color: var(--text-soft) !important;
+}
+
+/* Solid bootstrap badges keep their hue but need a legible label */
+[data-theme='dark'] .badge-info,
+[data-theme='dark'] .badge-success,
+[data-theme='dark'] .badge-warning,
+[data-theme='dark'] .badge-danger,
+[data-theme='dark'] .badge-dark {
+  color: #0d1016 !important;
+}
+
+[data-theme='dark'] .badge-info { background: #4aa3b8 !important; }
+[data-theme='dark'] .badge-success { background: #5faf77 !important; }
+[data-theme='dark'] .badge-warning { background: #cfa758 !important; }
+[data-theme='dark'] .badge-danger { background: #cd7167 !important; }
 
 /* The vendor theme paints every <pre> with a light ground of its own */
 [data-theme='dark'] pre,
