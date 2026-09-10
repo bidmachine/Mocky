@@ -38,6 +38,23 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                 <CleanConfirmationOnSubmit />
 
                 <div className="row">
+                  <div className="col-md-12">
+                    <Label htmlFor="name">Mock name</Label>
+                    <OptionalTag />
+                    <FastField
+                      id="name"
+                      type="string"
+                      name="name"
+                      aria-invalid={!!errors.name && !!touched.name}
+                      aria-describedby="name-help"
+                      className={`form-control ${!!errors.name && !!touched.name ? 'input--error' : ''}`}
+                    />
+                    <ErrorFeedback name="name" />
+                    <Help id="name-help">A name to find this mock in your list later.</Help>
+                  </div>
+                </div>
+
+                <div className="row mt-3">
                   <div className="col-md-6">
                     <Label htmlFor="status" required>HTTP Status</Label>
                     <RequiredTag />
@@ -86,11 +103,11 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                 </div>
                 <hr className="mt-4"></hr>
                 <h5 className="mb-2">
-                  Options to manage your mock after its creation
+                  Managing your mock after its creation
                   <OptionalTag />
                 </h5>
                 <div className="row">
-                  <div className="col-md-6">
+                  <div className="col-md-6 mb-5">
                     <Label htmlFor="secret">Secret token</Label>
 
                     <FastField
@@ -109,23 +126,6 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                     </Help>
                   </div>
 
-                  <div className="col-md-6 mb-5">
-                    <Label htmlFor="name">Mock identifier</Label>
-                    <FastField
-                      id="name"
-                      type="string"
-                      name="name"
-                      aria-invalid={!!errors.name && !!touched.name}
-                      aria-describedby="name-help"
-                      className={`form-control ${!!errors.name && !!touched.name ? 'input--error' : ''}`}
-                    />
-                    <ErrorFeedback name="name" />
-                    <Help id="name-help">
-                      Just a name to identify this mock in your management console later.
-                      <br />
-                      &nbsp;
-                    </Help>
-                  </div>
                 </div>
                 {submitCount > 0 && !isValid && (
                   <div className="alert bg--error" role="alert" ref={errorAlert} tabIndex={-1}>

@@ -465,10 +465,21 @@ a.type--fine-print {
   color: var(--text-soft) !important;
 }
 
-/* The dropdown itself, which opens over the page and was white too. */
+/*
+ * The dropdown itself, which opens over the page and was white too.
+ *
+ * react-select gives the menu `z-index: 1`, which the Ace editor below it wins, so the body
+ * field showed through the options. The menu list inside is transparent by design, so the
+ * opaque ground has to sit on both.
+ */
 [data-theme='dark'] [class*='-menu'] {
   background: var(--surface-raised, #1e212a) !important;
   border: 1px solid var(--border-strong);
+  z-index: 20 !important;
+}
+
+[data-theme='dark'] [class*='-menu'] > div {
+  background: var(--surface-raised, #1e212a) !important;
 }
 
 [data-theme='dark'] [class*='-option'] {
