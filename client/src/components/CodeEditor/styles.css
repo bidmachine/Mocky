@@ -7,7 +7,7 @@
  * from their lines once a long line (an ad markup URL, a VAST payload) wraps.
  */
 .editor--code {
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -18,5 +18,5 @@
 }
 
 .editor--code .ace_gutter {
-  background: #fafafa;
+  background: var(--surface-sunken);
 }

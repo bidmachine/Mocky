@@ -43,16 +43,18 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   }, [mock]);
 
   // The manager has never read from the server before, so this is the one place that fetches.
+  // The log is loaded even when capture is off: earlier requests are still worth reading.
   useEffect(() => {
-    if (enabled) load();
-  }, [enabled, load]);
+    load();
+  }, [load]);
 
   const toggle = async () => {
     const limit = enabled ? 0 : DEFAULT_LIMIT;
 
     if (await MockyAPI.setCapture(mock, limit)) {
       dispatch(setCaptureLimit({ id: mock.id, limit }));
-      if (limit === 0) setItems([]);
+      // Switching capture off only stops new records — what was already collected stays readable
+      load();
     } else {
       setError('Could not change the capture setting.');
     }
@@ -71,16 +73,28 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   return (
     <div className="captures">
       <div className="captures-bar">
-        <label className="capture-switch">
-          <input type="checkbox" checked={enabled} onChange={toggle} />
-          <span>Capture requests</span>
-        </label>
+        <button
+          type="button"
+          className={`capture-switch ${enabled ? 'on' : ''}`}
+          role="switch"
+          aria-checked={enabled}
+          onClick={toggle}
+        >
+          <span className="capture-track">
+            <span className="capture-knob" />
+          </span>
+          Capture requests
+        </button>
 
         <span className="capture-meta">
-          {enabled ? `${items.length} / ${mock.captureLimit} · kept 7 days` : 'off'}
+          {enabled
+            ? `${items.length} / ${mock.captureLimit} · kept 7 days`
+            : items.length > 0
+            ? `off · ${items.length} kept`
+            : 'off'}
         </span>
 
-        {enabled && (
+        {(enabled || items.length > 0) && (
           <span className="capture-actions">
             <button type="button" className="btn btn--sm" onClick={load} disabled={loading}>
               {loading ? 'Loading…' : 'Refresh'}
@@ -94,21 +108,18 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
       {error && <div className="mock-error">{error}</div>}
 
-      {!enabled && (
+      {items.length === 0 && !loading && (
         <div className="captures-empty">
-          <div>Capture is off for this mock.</div>
-          <div className="captures-hint">Turn it on and the next calls to this URL will show up here.</div>
+          <div>{enabled ? 'No requests captured yet.' : 'Capture is off for this mock.'}</div>
+          {enabled ? (
+            <code className="captures-cmd">curl -X POST {mock.link} -d '&#123;"ping":1&#125;'</code>
+          ) : (
+            <div className="captures-hint">Turn it on and the next calls to this URL will show up here.</div>
+          )}
         </div>
       )}
 
-      {enabled && items.length === 0 && !loading && (
-        <div className="captures-empty">
-          <div>No requests captured yet.</div>
-          <code className="captures-cmd">curl -X POST {mock.link} -d '&#123;"ping":1&#125;'</code>
-        </div>
-      )}
-
-      {enabled && items.length > 0 && (
+      {items.length > 0 && (
         <div className="captures-split">
           <div className="captures-list">
             {items.map((item, index) => (
@@ -119,7 +130,8 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                 onClick={() => {
                   setSelected(index);
                   setPath(undefined);
-                }}>
+                }}
+              >
                 <span className={`capture-method m-${item.method}`}>{item.method}</span>
                 <span className="capture-path">
                   {item.path}
@@ -161,13 +173,15 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                       <button
                         type="button"
                         className={`btn btn--sm ${raw ? '' : 'btn--primary'}`}
-                        onClick={() => setRaw(false)}>
+                        onClick={() => setRaw(false)}
+                      >
                         Tree
                       </button>
                       <button
                         type="button"
                         className={`btn btn--sm ${raw ? 'btn--primary' : ''}`}
-                        onClick={() => setRaw(true)}>
+                        onClick={() => setRaw(true)}
+                      >
                         Raw
                       </button>
                       <input

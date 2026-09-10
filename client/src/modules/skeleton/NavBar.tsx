@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
+import ThemeToggle from '../../components/ThemeToggle/ThemeToggle';
+
 import logo from './assets/logo-dark.png';
 
 export default () => (
@@ -18,6 +20,8 @@ export default () => (
             </div>
             <div className="col-lg-11 col-md-12 text-right text-left-xs text-left-sm">
               <div className="bar__module">
+                <ThemeToggle />
+
                 <NavLink to="/manage" className="btn btn--sm type--uppercase hidden-xs">
                   <span className="btn__text">Manage my mocks</span>
                 </NavLink>

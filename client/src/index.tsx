@@ -1,3 +1,4 @@
+import './theme-dark.css';
 import './index.css';
 
 import * as React from 'react';

@@ -1,0 +1,210 @@
+/*
+ * Dark theme.
+ *
+ * The site's theme is a 196 KB stylesheet served from a CDN, so it cannot be edited — the dark
+ * theme is an override layered on top of it. A handful of colours account for most of that file
+ * (#fff, #252525, #ececec, #fafafa), which is what makes overriding it practical rather than a
+ * rewrite: the rules below re-point those surfaces and let everything inherited follow.
+ *
+ * Tokens are declared here and consumed by the app's own stylesheets, so a component never picks
+ * a literal colour that only works in one theme.
+ */
+
+:root {
+  --surface: #ffffff;
+  --surface-raised: #f7f7f9;
+  --surface-sunken: #f0f0f4;
+  --text: #212529;
+  --text-soft: #495057;
+  --text-faint: #6c757d;
+  --border: #dee2e6;
+  --border-strong: #ced4da;
+  --accent: #4a90e2;
+  --accent-text: #ffffff;
+  --code-key: #0550ae;
+  --code-str: #1a7f37;
+  --code-num: #b35900;
+  --code-bool: #8250df;
+  --code-null: #8a8f9c;
+  --hit: #ffe08a;
+  --hit-text: #3a2c05;
+  --danger: #721c24;
+  --danger-bg: #f8d7da;
+  --warning: #856404;
+  --warning-bg: #fff3cd;
+  --method-get: #2c6e9b;
+  --method-post: #276b4a;
+  --method-put: #8a6314;
+  --method-delete: #9e3a31;
+  --path: #a9662a;
+  --delete: #dc3545;
+}
+
+[data-theme='dark'] {
+  --surface: #16181f;
+  --surface-raised: #1e212a;
+  --surface-sunken: #101219;
+  --text: #e6e8ee;
+  --text-soft: #a8adbb;
+  --text-faint: #7b8090;
+  --border: #2a2d38;
+  --border-strong: #3b3f4d;
+  --accent: #5b9ce6;
+  --accent-text: #0d1016;
+  --code-key: #79b8ff;
+  --code-str: #85d996;
+  --code-num: #e0a458;
+  --code-bool: #c99bea;
+  --code-null: #6f7482;
+  --hit: #6b5416;
+  --hit-text: #ffe8b0;
+  --danger: #f0918a;
+  --danger-bg: #33191a;
+  --warning: #e0be6d;
+  --warning-bg: #2f2716;
+  --method-get: #79b8ff;
+  --method-post: #85d996;
+  --method-put: #e0a458;
+  --method-delete: #f0918a;
+  --path: #e0a458;
+  --delete: #f0918a;
+}
+
+/* ---------------------------------------------------------------------------
+ * Re-point the vendor theme's surfaces. These selectors mirror the ones the CDN
+ * stylesheet paints, which is why they are broad: the goal is to flip a ground,
+ * not to restyle a component.
+ * ------------------------------------------------------------------------- */
+
+[data-theme='dark'] body,
+[data-theme='dark'] .main-container {
+  background: var(--surface);
+  color: var(--text);
+}
+
+[data-theme='dark'] .bg--secondary,
+[data-theme='dark'] .bg--white,
+[data-theme='dark'] .boxed,
+[data-theme='dark'] .nav-container,
+[data-theme='dark'] .bar,
+[data-theme='dark'] footer {
+  background: var(--surface-raised) !important;
+  color: var(--text);
+}
+
+[data-theme='dark'] .bar,
+[data-theme='dark'] .nav-container,
+[data-theme='dark'] .boxed,
+[data-theme='dark'] footer {
+  border-color: var(--border) !important;
+}
+
+[data-theme='dark'] h1,
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] h4,
+[data-theme='dark'] h5,
+[data-theme='dark'] h6,
+[data-theme='dark'] p,
+[data-theme='dark'] span,
+[data-theme='dark'] li,
+[data-theme='dark'] label,
+[data-theme='dark'] div {
+  color: inherit;
+}
+
+[data-theme='dark'] .type--fade,
+[data-theme='dark'] small {
+  color: var(--text-faint) !important;
+}
+
+/* Form controls: the vendor theme paints these white with a light border */
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select,
+[data-theme='dark'] .form-control {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border-strong) !important;
+}
+
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: var(--text-faint) !important;
+}
+
+[data-theme='dark'] .btn:not(.btn--primary) {
+  background: var(--surface-raised);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+[data-theme='dark'] table,
+[data-theme='dark'] .table {
+  color: var(--text);
+}
+
+[data-theme='dark'] .table--alternate-row tbody tr:nth-child(even) {
+  background: var(--surface-raised);
+}
+
+[data-theme='dark'] .table td {
+  border-color: var(--border);
+}
+
+/* Links keep the accent, which is legible on both grounds */
+[data-theme='dark'] a {
+  color: var(--accent);
+}
+
+/* The logo is a dark-on-light image; the theme ships a light variant for dark grounds */
+[data-theme='dark'] .logo-dark {
+  display: none;
+}
+
+[data-theme='dark'] .logo-light {
+  display: inline-block !important;
+}
+
+/* The vendor theme paints every <pre> with a light ground of its own */
+[data-theme='dark'] pre,
+[data-theme='dark'] code {
+  background: var(--surface-sunken) !important;
+  color: var(--text-soft) !important;
+}
+
+/* Ace ships its own light theme; these are the surfaces it paints */
+[data-theme='dark'] .ace-github,
+[data-theme='dark'] .ace-github .ace_gutter {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_gutter {
+  background: var(--surface-sunken) !important;
+  color: var(--text-faint) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_marker-layer .ace_active-line {
+  background: var(--surface-raised) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_cursor {
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_string {
+  color: var(--code-str) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_variable {
+  color: var(--code-key) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_constant.ace_numeric {
+  color: var(--code-num) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_constant.ace_language {
+  color: var(--code-bool) !important;
+}

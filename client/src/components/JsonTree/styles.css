@@ -21,13 +21,13 @@
 }
 
 .jsontree .jt-row:hover {
-  background: #eef0f4;
+  background: var(--surface-sunken);
 }
 
 .jsontree .jt-twist {
   width: 12px;
   flex: none;
-  color: #8a8f9c;
+  color: var(--text-faint);
   cursor: pointer;
   user-select: none;
 }
@@ -37,16 +37,16 @@
 }
 
 .jsontree .jt-key {
-  color: #0550ae;
+  color: var(--code-key);
 }
 
 .jsontree .jt-colon {
-  color: #6c757d;
+  color: var(--text-faint);
 }
 
 .jsontree .jt-brace,
 .jsontree .jt-close {
-  color: #6c757d;
+  color: var(--text-faint);
 }
 
 .jsontree .jt-close {
@@ -54,26 +54,26 @@
 }
 
 .jsontree .jt-val.jt-str {
-  color: #1a7f37;
+  color: var(--code-str);
 }
 
 .jsontree .jt-val.jt-num {
-  color: #b35900;
+  color: var(--code-num);
 }
 
 .jsontree .jt-val.jt-bool {
-  color: #8250df;
+  color: var(--code-bool);
 }
 
 .jsontree .jt-val.jt-null {
-  color: #8a8f9c;
+  color: var(--text-faint);
 }
 
 /* Size of a folded branch, so the shape of a payload reads without opening it */
 .jsontree .jt-count {
   font-size: 10.5px;
-  color: #6c757d;
-  background: #eef0f4;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
   border-radius: 8px;
   padding: 0 6px;
   margin-left: 6px;
@@ -84,8 +84,8 @@
 }
 
 .jsontree mark {
-  background: #ffe08a;
-  color: #3a2c05;
+  background: var(--hit);
+  color: var(--hit-text);
   border-radius: 1px;
   padding: 0 1px;
 }
