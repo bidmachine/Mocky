@@ -415,3 +415,60 @@ a.type--fine-print {
   white-space: nowrap;
   border: 0;
 }
+
+/*
+ * react-select in the dark theme.
+ *
+ * The three selects at the top of the designer — HTTP Status, Content Type, Charset — kept a
+ * white background while every other control on the page was #16181f, and the theme's near-white
+ * text was inherited into them: 1.06:1, white on white. The value stayed readable only because
+ * react-select paints it separately. It builds its control from divs with generated class names,
+ * so `.form-control` never reached it.
+ *
+ * Matching by class-name fragment covers the emotion-generated names without pinning the hashes,
+ * which change whenever the library is rebuilt.
+ */
+[data-theme='dark'] [class*='-control'] {
+  background: var(--surface) !important;
+  border-color: var(--border-strong) !important;
+}
+
+[data-theme='dark'] [class*='-singleValue'],
+[data-theme='dark'] [class*='-Input'],
+[data-theme='dark'] [class*='-control'] input {
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] [class*='-placeholder'] {
+  color: var(--text-soft) !important;
+}
+
+/* The dropdown itself, which opens over the page and was white too. */
+[data-theme='dark'] [class*='-menu'] {
+  background: var(--surface-raised, #1e212a) !important;
+  border: 1px solid var(--border-strong);
+}
+
+[data-theme='dark'] [class*='-option'] {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] [class*='-option']:hover,
+[data-theme='dark'] [class*='-option'][class*='is-focused'] {
+  background: var(--surface-sunken) !important;
+}
+
+[data-theme='dark'] [class*='-option'][class*='is-selected'] {
+  background: var(--accent) !important;
+  color: #0d1016 !important;
+}
+
+/* Separator and the arrow/clear icons, which were tuned for a white ground. */
+[data-theme='dark'] [class*='-indicatorSeparator'] {
+  background-color: var(--border-strong) !important;
+}
+
+[data-theme='dark'] [class*='-indicatorContainer'] {
+  color: var(--text-soft) !important;
+}
