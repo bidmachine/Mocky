@@ -341,22 +341,34 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                 {current.body !== undefined && (
                   <>
                     <div className="capture-tools">
-                      <button
-                        type="button"
-                        className={`btn btn--sm ${showRaw ? '' : 'btn--primary'}`}
-                        onClick={() => setRaw(false)}
-                        disabled={!isJson}
-                        title={isJson ? undefined : 'This body is not JSON'}
+                      <div
+                        className={`view-switch ${showRaw ? 'raw' : 'tree'} ${isJson ? '' : 'disabled'}`}
+                        role="radiogroup"
+                        aria-label="Payload view"
+                        title={isJson ? undefined : 'This body is not JSON, so there is no tree to show'}
                       >
-                        Tree
-                      </button>
-                      <button
-                        type="button"
-                        className={`btn btn--sm ${showRaw ? 'btn--primary' : ''}`}
-                        onClick={() => setRaw(true)}
-                      >
-                        Raw
-                      </button>
+                        {/* The thumb slides between the two halves; the labels sit above it */}
+                        <span className="view-switch-thumb" aria-hidden="true" />
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={!showRaw}
+                          className="view-switch-option"
+                          onClick={() => setRaw(false)}
+                          disabled={!isJson}
+                        >
+                          Tree
+                        </button>
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={showRaw}
+                          className="view-switch-option"
+                          onClick={() => setRaw(true)}
+                        >
+                          Raw
+                        </button>
+                      </div>
                       <input
                         type="text"
                         className="capture-find"

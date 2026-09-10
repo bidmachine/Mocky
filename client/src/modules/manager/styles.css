@@ -532,6 +532,69 @@ div.capture-tools {
   flex-wrap: wrap;
 }
 
+/*
+ * Tree / Raw as one control rather than two buttons: the two views are exclusive, and a pair of
+ * buttons where one happens to be filled reads as two separate actions.
+ */
+div.view-switch {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--surface-sunken);
+}
+
+span.view-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  border-radius: 3px;
+  background: var(--accent);
+  transition: transform 0.16s ease;
+}
+
+div.view-switch.raw span.view-switch-thumb {
+  transform: translateX(100%);
+}
+
+button.view-switch-option {
+  position: relative;
+  z-index: 1;
+  min-width: 54px;
+  padding: 4px 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+
+button.view-switch-option[aria-checked='true'] {
+  color: var(--accent-text);
+}
+
+button.view-switch-option:not([aria-checked='true']):hover:not(:disabled) {
+  color: var(--text);
+}
+
+/* No tree to show: the option is unavailable, and the control says so rather than
+   pretending the choice exists */
+button.view-switch-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+div.view-switch.disabled {
+  opacity: 0.85;
+}
+
 div.capture-tools .btn {
   margin: 0;
   padding: 3px 12px;
