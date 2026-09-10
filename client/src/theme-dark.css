@@ -386,8 +386,21 @@ input:focus-visible {
   border-color: var(--accent, #4aa3b8) !important;
 }
 
+/*
+ * react-select's own input is a bare <input> nested inside the control, so the rule above drew
+ * the focus ring around the text instead of around the field — a blue box sitting inside the
+ * box. The ring belongs on the control, which is what a person sees as the field.
+ */
+[class*='-control'] input:focus-visible,
+[class*='-control'] input:focus {
+  outline: none !important;
+  border-color: transparent !important;
+}
+
 /* react-select renders its own container, so the ring goes on the wrapper it marks as focused */
-.input-select [class*='--is-focused'] {
+.input-select [class*='--is-focused'],
+[class*='-control'][class*='--is-focused'],
+.boxed [class*='-control']:focus-within {
   outline: 2px solid var(--accent, #4aa3b8) !important;
   outline-offset: 1px;
 }
