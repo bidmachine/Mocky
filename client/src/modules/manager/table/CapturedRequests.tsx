@@ -11,6 +11,15 @@ import { formatBody, humanSize } from '../../../services/format';
 /** What a mock keeps once capture is switched on. */
 const DEFAULT_LIMIT = 100;
 
+/**
+ * How much of a body is rendered at once.
+ *
+ * A captured payload can be 64 KB on a single line with no whitespace — laying that out means
+ * the browser hunting for break opportunities character by character, which froze the tab for
+ * four seconds on click. The rest stays one button away.
+ */
+const PREVIEW_CHARS = 20000;
+
 /** How often an open tab re-reads the log while capture is on. */
 const POLL_MS = 3000;
 
@@ -29,6 +38,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const [raw, setRaw] = useState(false);
   const [copied, setCopied] = useState<'raw' | 'json' | 'path' | undefined>(undefined);
   const [confirmingClear, setConfirmingClear] = useState(false);
+  const [showWhole, setShowWhole] = useState(false);
   const [matches, setMatches] = useState(0);
   const [atMatch, setAtMatch] = useState(0);
   const detailRef = useRef<HTMLDivElement | null>(null);
@@ -402,7 +412,18 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                     </div>
 
                     {showRaw ? (
-                      <pre className="capture-raw">{prettify(current)}</pre>
+                      <>
+                        <pre className="capture-raw">{clipped(prettify(current), showWhole)}</pre>
+                        {isClipped(prettify(current), showWhole) && (
+                          <div className="capture-clip">
+                            Showing the first {PREVIEW_CHARS.toLocaleString()} of{' '}
+                            {prettify(current).length.toLocaleString()} characters.
+                            <button type="button" className="btn btn--sm" onClick={() => setShowWhole(true)}>
+                              Show all
+                            </button>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <JsonTree
                         value={parsed}
@@ -445,6 +466,11 @@ const copyText = (text: string) => {
     navigator.clipboard.writeText(text).catch(() => undefined);
   }
 };
+
+const isClipped = (text: string, showWhole: boolean): boolean => !showWhole && text.length > PREVIEW_CHARS;
+
+const clipped = (text: string, showWhole: boolean): string =>
+  isClipped(text, showWhole) ? text.slice(0, PREVIEW_CHARS) : text;
 
 /** Undefined when the body is not JSON, which sends the viewer to the raw view. */
 const parseJson = (body: string): unknown => {

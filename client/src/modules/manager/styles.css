@@ -607,6 +607,25 @@ span.capture-path-empty {
   color: var(--text-faint);
 }
 
+/* Notice that the view is clipped, with the way to see the rest */
+div.capture-clip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface-sunken);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+div.capture-clip .btn {
+  margin: 0;
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
 pre.capture-raw {
   font-family: 'Source Code Pro', monospace;
   font-size: 12px;

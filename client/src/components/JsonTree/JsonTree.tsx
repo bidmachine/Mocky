@@ -157,9 +157,24 @@ const typeName = (value: Json): string => {
   return 'str';
 };
 
+/**
+ * How much of a single value is drawn.
+ *
+ * A bid request carries VAST markup and signed URLs that run to tens of thousands of characters
+ * on one line; laying those out unbroken blocks the tab. The full value is still available
+ * through Raw and the copy actions.
+ */
+const MAX_VALUE_CHARS = 2000;
+
 const render = (value: Json): string => {
   if (value === null) return 'null';
-  if (typeof value === 'string') return `"${value}"`;
+
+  if (typeof value === 'string') {
+    return value.length > MAX_VALUE_CHARS
+      ? `"${value.slice(0, MAX_VALUE_CHARS)}… (${value.length.toLocaleString()} chars)"`
+      : `"${value}"`;
+  }
+
   return String(value);
 };
 
