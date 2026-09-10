@@ -92,3 +92,15 @@ span.form-text {
     height: 44px;
   }
 }
+
+/*
+ * The three response fields share a row, and their help lines wrap to different depths — one
+ * line under Content Type, two under Status and Charset — which left a ragged edge below the
+ * row. Reserving two lines keeps the block that follows on a straight line.
+ */
+@media (min-width: 992px) {
+  .row.mt-3 > [class*='col-lg-3'] .form-text,
+  .row.mt-3 > [class*='col-lg-6'] .form-text {
+    min-height: 36px;
+  }
+}

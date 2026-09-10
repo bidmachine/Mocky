@@ -54,18 +54,20 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                   </div>
                 </div>
 
+                {/*
+                  * Status, content type and charset describe one thing between them — what the
+                  * response is — so they sit on one line. Status was alone in a half-width row,
+                  * which left the space beside it empty and split the group across two rows.
+                  */}
                 <div className="row mt-3">
-                  <div className="col-md-6">
+                  <div className="col-lg-3 col-md-6">
                     <Label htmlFor="status" required>HTTP Status</Label>
                     <RequiredTag />
                     <FastField type="text" name="status" component={SelectHttpStatusCode} />
                     <ErrorFeedback name="status" />
                     <Help id="status-help">The HTTP Code of the HTTP response you'll receive.</Help>
                   </div>
-                </div>
-
-                <div className="row mt-3">
-                  <div className="col-md-6">
+                  <div className="col-lg-6 col-md-6">
                     <Label htmlFor="contentType" required>Response Content Type</Label>
                     <RequiredTag />
 
@@ -73,7 +75,7 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                     <ErrorFeedback name="contentType" />
                     <Help id="contentType-help">The Content-Type header that will be sent with the response.</Help>
                   </div>
-                  <div className="col-md-6">
+                  <div className="col-lg-3 col-md-6">
                     <Label htmlFor="charset" required>Charset</Label>
                     <RequiredTag />
 
@@ -82,7 +84,7 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                     <Help id="charset-help">The Charset used to encode/decode your payload.</Help>
                   </div>
                 </div>
-                <div className="row">
+                <div className="row mt-3">
                   <div className="col-md-12">
                     <Label htmlFor="headers">HTTP Headers</Label>
                     <OptionalTag />
