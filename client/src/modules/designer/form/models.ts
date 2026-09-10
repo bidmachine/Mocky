@@ -10,9 +10,10 @@ export const initialState: NewMockFormValues = {
   body: '',
   secret: '',
   name: '',
-  // A mock nobody gave an end to used to live forever, which is how the table filled up with
-  // mocks whose secret is long lost. Anyone who wants one permanently can still pick "Never".
-  expiration: '2weeks',
+  // Someone creating a mock in the designer is keeping it, and the list in this browser holds the
+  // secret needed to delete it. A caller that sends no expiration at all gets two weeks instead,
+  // since nothing there remembers the mock afterwards.
+  expiration: 'never',
 };
 
 // Check if the header field is a "basic" object with string key and string value

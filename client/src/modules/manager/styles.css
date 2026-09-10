@@ -771,3 +771,13 @@ pre.capture-raw {
     max-height: 220px;
   }
 }
+
+/* Shown when a delete failed and the mock is still on the server. */
+.delete-failed {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  text-align: left;
+}

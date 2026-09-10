@@ -66,6 +66,10 @@ than kept.
 Pass `"expiration": "never"` only for a mock a person will keep using. Once it expires the URL
 returns 404 and the row is removed — including its captured requests.
 
+(The designer defaults to "never" instead, because a mock made there is kept in that browser's
+list, along with the secret needed to delete it. Nothing remembers a mock created from a script,
+which is why this default differs.)
+
 ## Capture requests sent to the mock
 
 Off by default. Turn it on with the number of recent requests to keep (max 100):

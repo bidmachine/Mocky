@@ -2,7 +2,7 @@ import '../styles.css';
 
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAsync } from 'react-use';
 
 import { remove, selectMockById } from '../../../redux/mocks/slice';
@@ -17,10 +17,10 @@ import GA from '../../../services/Analytics/GA';
 const DeletionApproval = () => {
   const { id, secret }: DeleteMockParams = useParams();
   const dispatch = useDispatch();
-  const history = useHistory();
 
   const [deleting, setDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   // Check if the mock exist in the store
   const mock = useSelector(selectMockById(id, secret));
@@ -29,24 +29,36 @@ const DeletionApproval = () => {
     return MockyAPI.check({ id, secret });
   }, [id, secret]);
 
+  /**
+   * Delete on the server first, and only forget the mock locally once that succeeded.
+   *
+   * The list in the browser is the only place the id and secret are kept, so dropping the entry
+   * before the request meant a failed delete left a mock alive in the database that nobody could
+   * reach any more, let alone remove.
+   */
   const triggerDelete = async () => {
     setDeleting(true);
-
-    // Delete from the store
-    dispatch(remove(id));
+    setFailed(false);
 
     GA.event('mock', 'delete');
 
-    // Try delete from the API
-    const result = await MockyAPI.delete({ id, secret });
+    let result = false;
+    try {
+      result = Boolean(await MockyAPI.delete({ id, secret }));
+    } catch (error) {
+      console.error(`Could not delete the mock: ${error}`);
+    }
 
-    // Mock deleted by the API -> confirmation
     if (result) {
       dispatch(remove(id));
       setDeleted(true);
     } else {
-      history.push('/manage/delete/done');
+      // The mock is still on the server, so it stays in the list with the credentials needed
+      // to try again.
+      setFailed(true);
     }
+
+    setDeleting(false);
   };
 
   return (
@@ -69,13 +81,19 @@ const DeletionApproval = () => {
                     <>
                       <p className="lead">You're about to definitively delete the following mock, are you sure?</p>
                       <DeleteMockInformation id={id} secret={secret} mock={mock} />
+                      {failed && (
+                        <p className="delete-failed" role="alert">
+                          The mock could not be deleted and is still on the server. It is still in your list, so you
+                          can try again.
+                        </p>
+                      )}
                       <button
                         type="submit"
                         className="btn btn--primary btn--confirmation"
                         onClick={triggerDelete}
                         disabled={deleting}
                       >
-                        DELETE NOW
+                        {failed ? 'TRY AGAIN' : 'DELETE NOW'}
                       </button>
                     </>
                   ) : (
