@@ -13,6 +13,7 @@
 }
 
 .jsontree .jt-row {
+  cursor: pointer;
   display: flex;
   align-items: baseline;
   white-space: pre;

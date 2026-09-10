@@ -5,6 +5,7 @@
  * `bodyEncoding` says; a binary payload survives instead of being mangled.
  */
 export interface CapturedRequest {
+  id: string;
   method: string;
   path: string;
   query?: string;
@@ -26,6 +27,7 @@ export interface CapturedPage {
 
 /** Shape the API actually returns, in snake_case. */
 export interface CapturedRequestAPI {
+  id: string;
   method: string;
   path: string;
   query: string | null;

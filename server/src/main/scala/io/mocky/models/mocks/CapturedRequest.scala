@@ -2,6 +2,7 @@ package io.mocky.models.mocks
 
 import java.sql.Timestamp
 import java.time.ZoneOffset
+import java.util.UUID
 
 import io.circe.syntax._
 import io.circe.{ Encoder, Json }
@@ -14,6 +15,8 @@ import io.circe.{ Encoder, Json }
   * unreadable characters.
   */
 final case class CapturedRequest(
+  // Assigned by the database on insert; a request on its way in does not have one yet
+  id: UUID = new UUID(0L, 0L),
   method: String,
   path: String,
   query: Option[String],
@@ -31,6 +34,7 @@ object CapturedRequest {
 
   implicit val encoder: Encoder[CapturedRequest] = Encoder.instance { req =>
     Json.obj(
+      "id" -> req.id.toString.asJson,
       "method" -> req.method.asJson,
       "path" -> req.path.asJson,
       "query" -> req.query.asJson,

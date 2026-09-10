@@ -162,6 +162,18 @@ div.mock-error {
 }
 
 /*
+ * Focus rings. The site theme sets `button:focus { outline: none !important }`, which leaves
+ * 13 of the 14 tab stops in this panel invisible to a keyboard user.
+ */
+.captures button:focus-visible,
+.captures input:focus-visible,
+.captures [role='button']:focus-visible,
+.captures [role='treeitem']:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+}
+
+/*
  * Response / Requests tabs inside an expanded row
  */
 div.mock-tabs {
@@ -316,7 +328,7 @@ div.captures-split {
 }
 
 div.captures-list {
-  flex: 0 0 300px;
+  flex: 0 1 clamp(280px, 26%, 420px);
   max-height: 520px;
   overflow-y: auto;
   display: flex;
@@ -327,7 +339,7 @@ div.captures-list {
 button.capture-row {
   color: var(--text);
   display: grid;
-  grid-template-columns: 52px 1fr auto;
+  grid-template-columns: 52px 1fr auto auto;
   gap: 8px;
   align-items: center;
   text-align: left;
@@ -372,6 +384,41 @@ span.capture-when {
   font-variant-numeric: tabular-nums;
 }
 
+/* Per-row delete, revealed on hover so it does not compete with the request itself */
+span.capture-del {
+  color: var(--text-faint);
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 3px;
+  border-radius: 2px;
+  opacity: 0;
+  cursor: pointer;
+}
+
+button.capture-row:hover span.capture-del,
+button.capture-row.on span.capture-del,
+span.capture-del:focus-visible {
+  opacity: 1;
+}
+
+span.capture-del:hover {
+  color: var(--delete);
+  background: var(--danger-bg);
+}
+
+span.capture-del:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Destructive confirmation, so the count is visible on the button that does it */
+.btn--danger,
+.btn--danger:hover {
+  background: var(--delete) !important;
+  border-color: var(--delete) !important;
+  color: #fff !important;
+}
+
 span.capture-trunc {
   background: var(--danger-bg);
   color: var(--danger);
@@ -392,6 +439,11 @@ div.captures-detail {
 }
 
 div.capture-when-bar {
+  /* Sticky: the detail pane scrolls, and on a 625-row payload the controls below were
+     11000px above the viewport — exactly when they are needed */
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   gap: 8px 16px;
   align-items: baseline;
@@ -416,6 +468,9 @@ pre.capture-headers {
 }
 
 div.capture-tools {
+  position: sticky;
+  top: 38px;
+  z-index: 2;
   display: flex;
   gap: 7px;
   align-items: center;

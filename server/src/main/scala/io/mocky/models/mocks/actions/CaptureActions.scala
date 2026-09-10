@@ -27,6 +27,18 @@ object ListCaptures {
   }
 }
 
+/** Remove a single captured request, addressed by its own id. */
+final case class DeleteCapture(secret: String, id: String)
+
+object DeleteCapture {
+  implicit val decoder: Decoder[DeleteCapture] = Decoder.instance { c =>
+    for {
+      secret <- c.downField("secret").as[String]
+      id <- c.downField("id").as[String]
+    } yield DeleteCapture(secret, id)
+  }
+}
+
 /**
   * Turn capture on or off. `limit` is how many recent requests to keep; 0 disables capture, which
   * is what every mock starts with.

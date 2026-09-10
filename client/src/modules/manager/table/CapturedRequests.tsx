@@ -28,6 +28,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const [path, setPath] = useState<string | undefined>(undefined);
   const [raw, setRaw] = useState(false);
   const [copied, setCopied] = useState<'raw' | 'json' | undefined>(undefined);
+  const [confirmingClear, setConfirmingClear] = useState(false);
 
   const enabled = (mock.captureLimit ?? 0) > 0;
 
@@ -113,14 +114,36 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   };
 
   const clear = async () => {
+    setConfirmingClear(false);
+
     if (await MockyAPI.clearCaptures(mock)) {
       setItems([]);
     } else {
-      setError('Could not clear the captured requests.');
+      setError('Could not delete the captured requests.');
     }
   };
 
+  /** Remove one request; the rest of the log, and the mock, are untouched. */
+  const deleteOne = async (request: CapturedRequest) => {
+    if (!(await MockyAPI.deleteCapture(mock, request.id))) {
+      setError('Could not delete that request.');
+      return;
+    }
+
+    setItems((previous) => {
+      const remaining = previous.filter((item) => item.id !== request.id);
+      setSelected((current) => Math.min(current, Math.max(remaining.length - 1, 0)));
+      return remaining;
+    });
+  };
+
   const current = items[selected];
+
+  // A body that is not JSON has no tree and cannot be searched, so the controls that imply
+  // otherwise are disabled rather than left offering something that does nothing.
+  const parsed = current?.body !== undefined ? parseJson(current.body) : undefined;
+  const isJson = parsed !== undefined;
+  const showRaw = raw || !isJson;
 
   const remember = (what: 'raw' | 'json') => {
     setCopied(what);
@@ -168,9 +191,25 @@ const CapturedRequests = (props: { mock: MockStored }) => {
             <button type="button" className="btn btn--sm" onClick={() => load()} disabled={loading}>
               {loading ? 'Loading…' : 'Refresh'}
             </button>
-            <button type="button" className="btn btn--sm" onClick={clear} disabled={items.length === 0}>
-              Clear log
-            </button>
+            {confirmingClear ? (
+              <>
+                <button type="button" className="btn btn--sm btn--danger" onClick={clear}>
+                  Delete {items.length} {items.length === 1 ? 'request' : 'requests'}
+                </button>
+                <button type="button" className="btn btn--sm" onClick={() => setConfirmingClear(false)}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="btn btn--sm"
+                onClick={() => setConfirmingClear(true)}
+                disabled={items.length === 0}
+              >
+                Delete all
+              </button>
+            )}
           </span>
         )}
       </div>
@@ -208,6 +247,25 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                 </span>
                 <span className="capture-when">{clockOf(item.receivedAt)}</span>
                 {item.truncated && <span className="capture-trunc">truncated</span>}
+                <span
+                  className="capture-del"
+                  role="button"
+                  tabIndex={0}
+                  title="Delete this request"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    deleteOne(item);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      deleteOne(item);
+                    }
+                  }}
+                >
+                  ×
+                </span>
               </button>
             ))}
           </div>
@@ -241,14 +299,16 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                     <div className="capture-tools">
                       <button
                         type="button"
-                        className={`btn btn--sm ${raw ? '' : 'btn--primary'}`}
+                        className={`btn btn--sm ${showRaw ? '' : 'btn--primary'}`}
                         onClick={() => setRaw(false)}
+                        disabled={!isJson}
+                        title={isJson ? undefined : 'This body is not JSON'}
                       >
                         Tree
                       </button>
                       <button
                         type="button"
-                        className={`btn btn--sm ${raw ? 'btn--primary' : ''}`}
+                        className={`btn btn--sm ${showRaw ? 'btn--primary' : ''}`}
                         onClick={() => setRaw(true)}
                       >
                         Raw
@@ -256,14 +316,18 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                       <input
                         type="text"
                         className="capture-find"
-                        placeholder="find: bidfloor, imp…"
+                        aria-label="Search payload"
+                        placeholder={isJson ? 'find: bidfloor, imp…' : 'not searchable — raw body'}
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
+                        disabled={!isJson}
                       />
                       <span className="capture-copy">
-                        <button type="button" className="btn btn--sm" onClick={() => copyJson(current)}>
-                          {copied === 'json' ? 'Copied' : 'Copy JSON'}
-                        </button>
+                        {isJson && (
+                          <button type="button" className="btn btn--sm" onClick={() => copyJson(current)}>
+                            {copied === 'json' ? 'Copied' : 'Copy JSON'}
+                          </button>
+                        )}
                         <button type="button" className="btn btn--sm" onClick={() => copyRaw(current)}>
                           {copied === 'raw' ? 'Copied' : 'Copy raw'}
                         </button>
@@ -272,11 +336,11 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
                     {path && <div className="capture-path-bar">{path}</div>}
 
-                    {raw || parseJson(current.body) === undefined ? (
+                    {showRaw ? (
                       <pre className="capture-raw">{prettify(current)}</pre>
                     ) : (
                       <JsonTree
-                        value={parseJson(current.body)}
+                        value={parsed}
                         search={search.trim().toLowerCase() || undefined}
                         onSelectPath={setPath}
                       />

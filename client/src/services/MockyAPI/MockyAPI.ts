@@ -83,6 +83,23 @@ const clearCaptures = async (mock: MockStored): Promise<Boolean> => {
   }
 };
 
+/** Remove one captured request, leaving the rest of the log alone. */
+const deleteCapture = async (mock: MockStored, captureId: string): Promise<Boolean> => {
+  try {
+    const response = await fetch(`${URL}/${mock.id}/requests/delete`, {
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      mode: 'cors',
+      body: JSON.stringify({ secret: mock.secret, id: captureId }),
+    });
+
+    return response.status === 204;
+  } catch (error) {
+    console.error(`Could not delete the captured request: ${error}`);
+    return false;
+  }
+};
+
 /** Turn capture on or off. A limit of 0 disables it, which is how every mock starts. */
 const setCapture = async (mock: MockStored, limit: number): Promise<Boolean> => {
   try {
@@ -101,6 +118,7 @@ const setCapture = async (mock: MockStored, limit: number): Promise<Boolean> => 
 };
 
 const toCapturedRequest = (api: CapturedRequestAPI): CapturedRequest => ({
+  id: api.id,
   method: api.method,
   path: api.path,
   query: api.query ?? undefined,
@@ -129,6 +147,7 @@ const MockyAPI = {
   update,
   captures,
   clearCaptures,
+  deleteCapture,
   setCapture,
 };
 

@@ -19,7 +19,7 @@ interface JsonTreeProps {
  * entries they hold, and every value carries the path that addresses it.
  */
 const JsonTree = ({ value, search, onSelectPath }: JsonTreeProps) => (
-  <div className="jsontree">
+  <div className="jsontree" role="tree" aria-label="Request payload">
     <TreeNode value={value} name={null} path="" depth={0} search={search} onSelectPath={onSelectPath} />
   </div>
 );
@@ -46,7 +46,19 @@ const TreeNode = ({ value, name, path, depth, search, onSelectPath }: NodeProps)
 
   if (!branch) {
     return (
-      <div className="jt-row" onClick={() => onSelectPath && onSelectPath(path)}>
+      <div
+        className="jt-row"
+        role="treeitem"
+        tabIndex={0}
+        aria-level={depth + 1}
+        onClick={() => onSelectPath && onSelectPath(path)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (onSelectPath) onSelectPath(path);
+          }
+        }}
+      >
         <span className="jt-twist jt-leaf" />
         {name !== null && <span className="jt-key">{highlight(name, search)}</span>}
         {name !== null && <span className="jt-colon">: </span>}
@@ -59,13 +71,35 @@ const TreeNode = ({ value, name, path, depth, search, onSelectPath }: NodeProps)
 
   return (
     <div>
-      <div className="jt-row" onClick={() => onSelectPath && onSelectPath(path)}>
+      <div
+        className="jt-row"
+        role="treeitem"
+        tabIndex={0}
+        aria-level={depth + 1}
+        aria-expanded={expanded}
+        onClick={() => onSelectPath && onSelectPath(path)}
+        onKeyDown={(event) => {
+          // Arrows fold and unfold, matching how a tree is expected to behave
+          if (event.key === 'ArrowRight' && !expanded) {
+            event.preventDefault();
+            setOpen(true);
+          } else if (event.key === 'ArrowLeft' && expanded) {
+            event.preventDefault();
+            setOpen(false);
+          } else if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (onSelectPath) onSelectPath(path);
+          }
+        }}
+      >
         <span
           className="jt-twist"
+          aria-hidden="true"
           onClick={(event) => {
             event.stopPropagation();
             setOpen(!expanded);
-          }}>
+          }}
+        >
           {expanded ? '▾' : '▸'}
         </span>
         {name !== null && <span className="jt-key">{highlight(name, search)}</span>}
@@ -75,7 +109,7 @@ const TreeNode = ({ value, name, path, depth, search, onSelectPath }: NodeProps)
       </div>
 
       {expanded && (
-        <div className="jt-kids">
+        <div className="jt-kids" role="group">
           {entries.map(([key, child]) => (
             <TreeNode
               key={key}
@@ -126,20 +160,30 @@ const subtreeMatches = (value: Json, name: string | null, search: string): boole
   return render(value).toLowerCase().includes(search);
 };
 
-/** Wrap the matching span so a hit is visible without scrolling the eye across the line. */
+/**
+ * Wrap every match, not only the first: a key like `maxduration` contains the term twice, and
+ * marking one occurrence makes the others look like misses.
+ */
 const highlight = (text: string, search?: string): React.ReactNode => {
   if (!search) return text;
 
-  const at = text.toLowerCase().indexOf(search);
+  const lower = text.toLowerCase();
+  const parts: React.ReactNode[] = [];
+  let from = 0;
+  let at = lower.indexOf(search);
+
   if (at === -1) return text;
 
-  return (
-    <>
-      {text.slice(0, at)}
-      <mark>{text.slice(at, at + search.length)}</mark>
-      {text.slice(at + search.length)}
-    </>
-  );
+  while (at !== -1) {
+    if (at > from) parts.push(text.slice(from, at));
+    parts.push(<mark key={at}>{text.slice(at, at + search.length)}</mark>);
+    from = at + search.length;
+    at = lower.indexOf(search, from);
+  }
+
+  if (from < text.length) parts.push(text.slice(from));
+
+  return <>{parts}</>;
 };
 
 export default JsonTree;

@@ -83,7 +83,7 @@ class MockV3Repository(
 
     def LIST_CAPTURES(mockId: UUID, limit: Int, offset: Int): Fragment =
       fr"""
-          SELECT method, path, query, headers, body, body_size, truncated, content_type, received_at
+          SELECT id, method, path, query, headers, body, body_size, truncated, content_type, received_at
           FROM $CAPTURES
           WHERE mock_id = $mockId
           ORDER BY received_at DESC
@@ -95,6 +95,10 @@ class MockV3Repository(
 
     def DELETE_CAPTURES(mockId: UUID): Fragment =
       fr"DELETE FROM $CAPTURES WHERE mock_id = $mockId"
+
+    /** Scoped by mock as well as id, so a capture can only be removed through its own mock. */
+    def DELETE_CAPTURE(mockId: UUID, captureId: UUID): Fragment =
+      fr"DELETE FROM $CAPTURES WHERE mock_id = $mockId AND id = $captureId"
 
     def SET_CAPTURE_LIMIT(id: UUID, limit: Int, secret: String): Fragment =
       fr"UPDATE $TABLE SET capture_limit = $limit WHERE id = $id AND ${checkSecret(secret)}"
@@ -230,6 +234,10 @@ class MockV3Repository(
   /** Clear a mock's capture log, leaving the mock itself untouched. */
   def clearCaptures(id: UUID): IO[Int] =
     SQL.DELETE_CAPTURES(id).update.run.transact(transactor)
+
+  /** Remove one captured request. */
+  def deleteCapture(mockId: UUID, captureId: UUID): IO[Boolean] =
+    SQL.DELETE_CAPTURE(mockId, captureId).update.run.transact(transactor).map(_ > 0)
 
   /**
     * Turn capture on or off for a mock. A captured request can hold whatever a caller sent, so

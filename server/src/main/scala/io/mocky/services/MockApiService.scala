@@ -6,7 +6,7 @@ import io.circe.{ Decoder, Json }
 
 import io.mocky.http.JsonMarshalling
 import io.mocky.models.errors.MockNotFoundError
-import io.mocky.models.mocks.actions.{ CreateUpdateMock, DeleteMock, ListCaptures, SetCapture }
+import io.mocky.models.mocks.actions.{ CreateUpdateMock, DeleteCapture, DeleteMock, ListCaptures, SetCapture }
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.middleware.CORS
@@ -105,6 +105,23 @@ class MockApiService(repository: MockV3Repository, settings: Settings) extends H
         repository.ownsMock(id, auth.secret).flatMap {
           case false => NotFound()
           case true => repository.clearCaptures(id) *> NoContent()
+        }
+      }
+
+    // Remove a single captured request
+    case req @ POST -> Root / "api" / "mock" / UUIDVar(id) / "requests" / "delete" =>
+      decodeJson[IO, DeleteCapture](req) { target =>
+        repository.ownsMock(id, target.secret).flatMap {
+          case false => NotFound()
+          case true =>
+            scala.util.Try(java.util.UUID.fromString(target.id)).toOption match {
+              case None => NotFound()
+              case Some(captureId) =>
+                repository.deleteCapture(id, captureId).flatMap {
+                  case true => NoContent()
+                  case false => NotFound()
+                }
+            }
         }
       }
 
