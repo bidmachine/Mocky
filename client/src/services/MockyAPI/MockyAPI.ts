@@ -3,6 +3,7 @@ import MockyAPITransformer, { MockEdits } from './MockAPITransformer';
 import HTTP from '../HTTP';
 import { MockCreated, DeleteMock } from './types';
 import { MockStored } from '../../redux/mocks/types';
+import { CapturedPage, CapturedPageAPI, CapturedRequest, CapturedRequestAPI } from './captureTypes';
 
 const URL = process.env.REACT_APP_API_URL + '/api/mock';
 
@@ -36,6 +37,82 @@ const update = async (mock: MockStored, edits: MockEdits): Promise<MockStored | 
   }
 };
 
+/**
+ * Requests captured by a mock, newest first.
+ *
+ * The secret travels in the body rather than the query string: it is a credential, and query
+ * strings end up in access logs and browser history.
+ */
+const captures = async (mock: MockStored, page = 1, perPage = 50): Promise<CapturedPage | undefined> => {
+  try {
+    const response = await HTTP.post<CapturedPageAPI>(`${URL}/${mock.id}/requests`, {
+      secret: mock.secret,
+      page,
+      per_page: perPage,
+    });
+
+    if (!response.ok || !response.data) return undefined;
+
+    return {
+      items: response.data.items.map(toCapturedRequest),
+      total: response.data.total,
+      page: response.data.page,
+      perPage: response.data.per_page,
+    };
+  } catch (error) {
+    console.error(`Could not read the captured requests: ${error}`);
+    return undefined;
+  }
+};
+
+/** Clear a mock's capture log, leaving the mock itself untouched. */
+const clearCaptures = async (mock: MockStored): Promise<Boolean> => {
+  try {
+    // The endpoint answers 204, so the response body is never read
+    const response = await fetch(`${URL}/${mock.id}/requests/clear`, {
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      mode: 'cors',
+      body: JSON.stringify({ secret: mock.secret }),
+    });
+
+    return response.status === 204;
+  } catch (error) {
+    console.error(`Could not clear the captured requests: ${error}`);
+    return false;
+  }
+};
+
+/** Turn capture on or off. A limit of 0 disables it, which is how every mock starts. */
+const setCapture = async (mock: MockStored, limit: number): Promise<Boolean> => {
+  try {
+    const response = await fetch(`${URL}/${mock.id}/capture`, {
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      mode: 'cors',
+      body: JSON.stringify({ secret: mock.secret, limit }),
+    });
+
+    return response.status === 204;
+  } catch (error) {
+    console.error(`Could not change the capture setting: ${error}`);
+    return false;
+  }
+};
+
+const toCapturedRequest = (api: CapturedRequestAPI): CapturedRequest => ({
+  method: api.method,
+  path: api.path,
+  query: api.query ?? undefined,
+  headers: api.headers,
+  contentType: api.content_type ?? undefined,
+  body: api.body ?? undefined,
+  bodyEncoding: api.body_encoding ?? undefined,
+  bodySize: api.body_size,
+  truncated: api.truncated,
+  receivedAt: api.received_at,
+});
+
 const _delete = async (data: DeleteMock): Promise<Boolean> => {
   return await HTTP.delete(`${URL}/${data.id}`, data);
 };
@@ -50,6 +127,9 @@ const MockyAPI = {
   check,
   create,
   update,
+  captures,
+  clearCaptures,
+  setCapture,
 };
 
 export default MockyAPI;

@@ -160,3 +160,270 @@ div.mock-error {
   background: #f8d7da;
   color: #721c24;
 }
+
+/*
+ * Response / Requests tabs inside an expanded row
+ */
+div.mock-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 12px;
+}
+
+button.mock-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 8px 0;
+  font-size: 13.5px;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+button.mock-tab.on {
+  color: #212529;
+  border-bottom-color: #4a90e2;
+  font-weight: 600;
+}
+
+/*
+ * Captured requests: the list and the payload sit side by side, because the common task is
+ * stepping through calls one after another rather than opening a single one.
+ */
+div.captures {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+div.captures-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+label.capture-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-weight: 600;
+  cursor: pointer;
+  /* The theme styles form labels as blocks, which wraps this one onto two lines */
+  white-space: nowrap;
+  flex: none;
+}
+
+label.capture-switch input {
+  margin: 0;
+  width: auto;
+  flex: none;
+}
+
+span.capture-meta {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: #6c757d;
+}
+
+span.capture-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+span.capture-actions .btn {
+  margin: 0;
+  padding: 4px 14px;
+  font-size: 12px;
+}
+
+div.captures-empty {
+  text-align: center;
+  padding: 26px 16px;
+  color: #6c757d;
+  font-size: 13.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+div.captures-hint {
+  font-size: 12.5px;
+}
+
+code.captures-cmd {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11.5px;
+  background: #f0f0f4;
+  padding: 6px 11px;
+  border-radius: 3px;
+  color: #495057;
+  word-break: break-all;
+}
+
+div.captures-split {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+div.captures-list {
+  flex: 0 0 300px;
+  max-height: 520px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+button.capture-row {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  text-align: left;
+  padding: 7px 10px;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11.5px;
+}
+
+button.capture-row:hover {
+  background: #f7f7f9;
+}
+
+button.capture-row.on {
+  border-color: #4a90e2;
+  background: #f2f7fd;
+}
+
+span.capture-method {
+  font-weight: 600;
+}
+
+span.capture-method.m-GET { color: #2c6e9b; }
+span.capture-method.m-POST { color: #276b4a; }
+span.capture-method.m-PUT { color: #8a6314; }
+span.capture-method.m-DELETE { color: #9e3a31; }
+
+span.capture-path {
+  color: #495057;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+span.capture-when {
+  color: #6c757d;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+span.capture-trunc {
+  background: #f8d7da;
+  color: #721c24;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-family: 'Source Code Pro', monospace;
+}
+
+div.captures-detail {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: 520px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+}
+
+div.capture-when-bar {
+  display: flex;
+  gap: 8px 16px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding: 9px 11px;
+  border-bottom: 1px solid #dee2e6;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11.5px;
+  color: #212529;
+}
+
+pre.capture-headers {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11.5px;
+  line-height: 1.65;
+  margin: 0;
+  padding: 10px 11px;
+  border-bottom: 1px solid #dee2e6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #495057;
+}
+
+div.capture-tools {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 8px 11px;
+  border-bottom: 1px solid #dee2e6;
+  background: #f7f7f9;
+  flex-wrap: wrap;
+}
+
+div.capture-tools .btn {
+  margin: 0;
+  padding: 3px 12px;
+  font-size: 11.5px;
+}
+
+input.capture-find {
+  flex: 1 1 140px;
+  min-width: 110px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11.5px;
+  padding: 4px 9px;
+  border: 1px solid #ced4da;
+  border-radius: 3px;
+}
+
+span.capture-path-value {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: #a9662a;
+  word-break: break-all;
+}
+
+pre.capture-raw {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 10px 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  div.captures-split {
+    flex-direction: column;
+  }
+
+  div.captures-list {
+    flex: none;
+    max-height: 220px;
+  }
+}

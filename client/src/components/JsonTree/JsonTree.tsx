@@ -1,0 +1,145 @@
+import React, { useMemo, useState } from 'react';
+
+import './styles.css';
+
+type Json = unknown;
+
+interface JsonTreeProps {
+  value: Json;
+  /** Lowercased search term; matching branches open and matching text is highlighted. */
+  search?: string;
+  onSelectPath?: (path: string) => void;
+}
+
+/**
+ * A collapsible view of a JSON payload.
+ *
+ * A captured bid request runs to hundreds of lines, where a flat dump is unreadable: the shape is
+ * what tells you where to look. Nodes therefore start folded, arrays and objects report how many
+ * entries they hold, and every value carries the path that addresses it.
+ */
+const JsonTree = ({ value, search, onSelectPath }: JsonTreeProps) => (
+  <div className="jsontree">
+    <TreeNode value={value} name={null} path="" depth={0} search={search} onSelectPath={onSelectPath} />
+  </div>
+);
+
+interface NodeProps {
+  value: Json;
+  name: string | null;
+  path: string;
+  depth: number;
+  search?: string;
+  onSelectPath?: (path: string) => void;
+}
+
+const TreeNode = ({ value, name, path, depth, search, onSelectPath }: NodeProps) => {
+  // Only the root is open initially; a search opens what it matches.
+  const [open, setOpen] = useState(depth === 0);
+
+  const branch = isBranch(value);
+  const entries = useMemo(() => (branch ? Object.entries(value as object) : []), [branch, value]);
+
+  // A hit deeper in the tree has to pull its ancestors open, or the match stays invisible.
+  const matches = useMemo(() => (search ? subtreeMatches(value, name, search) : false), [value, name, search]);
+  const expanded = open || (Boolean(search) && matches);
+
+  if (!branch) {
+    return (
+      <div className="jt-row" onClick={() => onSelectPath && onSelectPath(path)}>
+        <span className="jt-twist jt-leaf" />
+        {name !== null && <span className="jt-key">{highlight(name, search)}</span>}
+        {name !== null && <span className="jt-colon">: </span>}
+        <span className={`jt-val jt-${typeName(value)}`}>{highlight(render(value), search)}</span>
+      </div>
+    );
+  }
+
+  const isArray = Array.isArray(value);
+
+  return (
+    <div>
+      <div className="jt-row" onClick={() => onSelectPath && onSelectPath(path)}>
+        <span
+          className="jt-twist"
+          onClick={(event) => {
+            event.stopPropagation();
+            setOpen(!expanded);
+          }}>
+          {expanded ? '▾' : '▸'}
+        </span>
+        {name !== null && <span className="jt-key">{highlight(name, search)}</span>}
+        {name !== null && <span className="jt-colon">: </span>}
+        <span className="jt-brace">{isArray ? '[' : '{'}</span>
+        {!expanded && <span className="jt-count">{entries.length} items</span>}
+      </div>
+
+      {expanded && (
+        <div className="jt-kids">
+          {entries.map(([key, child]) => (
+            <TreeNode
+              key={key}
+              value={child}
+              name={key}
+              path={childPath(path, key, isArray)}
+              depth={depth + 1}
+              search={search}
+              onSelectPath={onSelectPath}
+            />
+          ))}
+        </div>
+      )}
+
+      {expanded && <div className="jt-row jt-close">{isArray ? ']' : '}'}</div>}
+    </div>
+  );
+};
+
+const isBranch = (value: Json): boolean => typeof value === 'object' && value !== null;
+
+const childPath = (parent: string, key: string, inArray: boolean): string => {
+  if (inArray) return `${parent}[${key}]`;
+  return parent === '' ? key : `${parent}.${key}`;
+};
+
+const typeName = (value: Json): string => {
+  if (value === null) return 'null';
+  if (typeof value === 'number') return 'num';
+  if (typeof value === 'boolean') return 'bool';
+  return 'str';
+};
+
+const render = (value: Json): string => {
+  if (value === null) return 'null';
+  if (typeof value === 'string') return `"${value}"`;
+  return String(value);
+};
+
+/** Whether this node, or anything under it, contains the term. */
+const subtreeMatches = (value: Json, name: string | null, search: string): boolean => {
+  if (name !== null && name.toLowerCase().includes(search)) return true;
+
+  if (isBranch(value)) {
+    return Object.entries(value as object).some(([key, child]) => subtreeMatches(child, key, search));
+  }
+
+  return render(value).toLowerCase().includes(search);
+};
+
+/** Wrap the matching span so a hit is visible without scrolling the eye across the line. */
+const highlight = (text: string, search?: string): React.ReactNode => {
+  if (!search) return text;
+
+  const at = text.toLowerCase().indexOf(search);
+  if (at === -1) return text;
+
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark>{text.slice(at, at + search.length)}</mark>
+      {text.slice(at + search.length)}
+    </>
+  );
+};
+
+export default JsonTree;

@@ -1,0 +1,46 @@
+/**
+ * A request that arrived on a mock's URL and was recorded by the server.
+ *
+ * `body` is text when the payload decoded as UTF-8 and base64 when it did not, which
+ * `bodyEncoding` says; a binary payload survives instead of being mangled.
+ */
+export interface CapturedRequest {
+  method: string;
+  path: string;
+  query?: string;
+  headers: Record<string, string>;
+  contentType?: string;
+  body?: string;
+  bodyEncoding?: 'utf-8' | 'base64';
+  bodySize: number;
+  truncated: boolean;
+  receivedAt: string;
+}
+
+export interface CapturedPage {
+  items: CapturedRequest[];
+  total: number;
+  page: number;
+  perPage: number;
+}
+
+/** Shape the API actually returns, in snake_case. */
+export interface CapturedRequestAPI {
+  method: string;
+  path: string;
+  query: string | null;
+  headers: Record<string, string>;
+  content_type: string | null;
+  body: string | null;
+  body_encoding: 'utf-8' | 'base64' | null;
+  body_size: number;
+  truncated: boolean;
+  received_at: string;
+}
+
+export interface CapturedPageAPI {
+  items: CapturedRequestAPI[];
+  total: number;
+  page: number;
+  per_page: number;
+}

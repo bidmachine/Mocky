@@ -1,0 +1,91 @@
+/*
+ * Collapsible JSON view, used for captured request bodies.
+ *
+ * Rows are laid out as flex lines rather than a pre block so that a highlighted match and the
+ * fold twisty stay on the same baseline as the text.
+ */
+.jsontree {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  line-height: 1.62;
+  overflow: auto;
+  padding: 8px 10px;
+}
+
+.jsontree .jt-row {
+  display: flex;
+  align-items: baseline;
+  white-space: pre;
+  border-radius: 2px;
+  padding: 0 3px;
+}
+
+.jsontree .jt-row:hover {
+  background: #eef0f4;
+}
+
+.jsontree .jt-twist {
+  width: 12px;
+  flex: none;
+  color: #8a8f9c;
+  cursor: pointer;
+  user-select: none;
+}
+
+.jsontree .jt-leaf {
+  visibility: hidden;
+}
+
+.jsontree .jt-key {
+  color: #0550ae;
+}
+
+.jsontree .jt-colon {
+  color: #6c757d;
+}
+
+.jsontree .jt-brace,
+.jsontree .jt-close {
+  color: #6c757d;
+}
+
+.jsontree .jt-close {
+  padding-left: 15px;
+}
+
+.jsontree .jt-val.jt-str {
+  color: #1a7f37;
+}
+
+.jsontree .jt-val.jt-num {
+  color: #b35900;
+}
+
+.jsontree .jt-val.jt-bool {
+  color: #8250df;
+}
+
+.jsontree .jt-val.jt-null {
+  color: #8a8f9c;
+}
+
+/* Size of a folded branch, so the shape of a payload reads without opening it */
+.jsontree .jt-count {
+  font-size: 10.5px;
+  color: #6c757d;
+  background: #eef0f4;
+  border-radius: 8px;
+  padding: 0 6px;
+  margin-left: 6px;
+}
+
+.jsontree .jt-kids {
+  padding-left: 15px;
+}
+
+.jsontree mark {
+  background: #ffe08a;
+  color: #3a2c05;
+  border-radius: 1px;
+  padding: 0 1px;
+}
