@@ -7,9 +7,10 @@ import org.http4s.server.middleware.CORS
 
 import io.mocky.config.Settings
 import io.mocky.http.HttpMockResponse
-import io.mocky.http.middleware.{ Jsonp, Sleep }
+import io.mocky.http.middleware.{ CaptureRequest, Jsonp, Sleep }
 import io.mocky.models.errors.MockNotFoundError
 import io.mocky.repositories.{ MockV2Repository, MockV3Repository }
+import io.mocky.utils.HttpUtil
 
 /**
   * Play V2 and V3 mocks
@@ -30,9 +31,14 @@ class MockRunnerService(repoV2: MockV2Repository, repoV3: MockV3Repository, sett
         case Right(mock) => respondWithMock(mock)
       }
 
-    // Fetch and play a "last version" mock
-    case _ -> "v3" /: UUIDVar(id) /: _ =>
-      repoV3.touchAndGetMockResponse(id).flatMap {
+    // Fetch and play a "last version" mock, recording the call when the mock captures
+    case req @ _ -> "v3" /: UUIDVar(id) /: suffix =>
+      val played = for {
+        captured <- CaptureRequest.from(req, suffix.toString, settings.capture)
+        result <- repoV3.touchCaptureAndGetMockResponse(id, captured, HttpUtil.getIP(req))
+      } yield result
+
+      played.flatMap {
         case Left(MockNotFoundError) => NotFound()
         case Right(mock) => respondWithMock(mock)
       }

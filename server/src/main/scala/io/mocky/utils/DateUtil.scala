@@ -13,5 +13,14 @@ object DateUtil {
     ZonedDateTime.now().plusDays(period.toDays)
   }
 
+  /**
+    * A cut-off in the past, used to expire captured requests.
+    *
+    * Unlike `future`, this keeps sub-day precision: a retention of a few hours has to mean what
+    * it says, and truncating it to whole days would silently round it to zero.
+    */
+  def past(period: FiniteDuration): Timestamp =
+    Timestamp.from(java.time.Instant.now().minusSeconds(period.toSeconds))
+
   def toTimestamp(zdt: ZonedDateTime) = Timestamp.valueOf(zdt.withZoneSameInstant(UTC).toLocalDateTime)
 }

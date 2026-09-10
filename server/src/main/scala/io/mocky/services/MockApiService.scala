@@ -1,11 +1,12 @@
 package io.mocky.services
 
 import cats.effect.IO
-import io.circe.Decoder
+import io.circe.syntax._
+import io.circe.{ Decoder, Json }
 
 import io.mocky.http.JsonMarshalling
 import io.mocky.models.errors.MockNotFoundError
-import io.mocky.models.mocks.actions.{ CreateUpdateMock, DeleteMock }
+import io.mocky.models.mocks.actions.{ CreateUpdateMock, DeleteMock, ListCaptures, SetCapture }
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.middleware.CORS
@@ -75,6 +76,45 @@ class MockApiService(repository: MockV3Repository, settings: Settings) extends H
           deleted <- repository.delete(id, deleteMock)
           response <- if (deleted) NoContent() else NotFound()
         } yield response
+      }
+
+    // Requests captured by a mock, newest first. The secret travels in the body rather than the
+    // query string so a credential does not end up in access logs.
+    case req @ POST -> Root / "api" / "mock" / UUIDVar(id) / "requests" =>
+      decodeJson[IO, ListCaptures](req) { list =>
+        repository.ownsMock(id, list.secret).flatMap {
+          case false => NotFound()
+          case true =>
+            repository.listCaptures(id, list.perPage, (list.page - 1) * list.perPage).flatMap {
+              case (items, total) =>
+                Ok(
+                  Json.obj(
+                    "items" -> items.asJson,
+                    "total" -> total.asJson,
+                    "page" -> list.page.asJson,
+                    "per_page" -> list.perPage.asJson
+                  )
+                )
+            }
+        }
+      }
+
+    // Clear a mock's captured requests, keeping the mock itself
+    case req @ POST -> Root / "api" / "mock" / UUIDVar(id) / "requests" / "clear" =>
+      decodeJson[IO, DeleteMock](req) { auth =>
+        repository.ownsMock(id, auth.secret).flatMap {
+          case false => NotFound()
+          case true => repository.clearCaptures(id) *> NoContent()
+        }
+      }
+
+    // Turn capture on or off for a mock
+    case req @ POST -> Root / "api" / "mock" / UUIDVar(id) / "capture" =>
+      decodeJson[IO, SetCapture](req) { setting =>
+        repository.setCaptureLimit(id, setting.limit, setting.secret).flatMap {
+          case true => NoContent()
+          case false => NotFound()
+        }
       }
 
     // Check if a mock can be deleted with this secret

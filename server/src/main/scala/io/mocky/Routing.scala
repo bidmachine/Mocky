@@ -16,7 +16,12 @@ class Routing {
 
   def wire(resources: Resources)(implicit timer: Timer[IO], contextShift: ContextShift[IO]): Http[IO, IO] = {
     val repositoryV2 = new MockV2Repository(resources.transactor)
-    val repositoryV3 = new MockV3Repository(resources.transactor, resources.config.settings.security)
+    val repositoryV3 =
+      new MockV3Repository(
+        resources.transactor,
+        resources.config.settings.security,
+        resources.config.settings.capture
+      )
 
     val mockApiService = new MockApiService(repositoryV3, resources.config.settings)
     val mockAdminApiService = new MockAdminApiService(repositoryV2, repositoryV3, resources.config.settings)
