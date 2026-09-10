@@ -36,7 +36,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const [search, setSearch] = useState('');
   const [path, setPath] = useState<string | undefined>(undefined);
   const [raw, setRaw] = useState(false);
-  const [copied, setCopied] = useState<'raw' | 'json' | 'path' | undefined>(undefined);
+  const [copied, setCopied] = useState<'body' | 'path' | undefined>(undefined);
   const [confirmingClear, setConfirmingClear] = useState(false);
   const [showWhole, setShowWhole] = useState(false);
   const [matches, setMatches] = useState(0);
@@ -173,21 +173,19 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const isJson = parsed !== undefined;
   const showRaw = raw || !isJson;
 
-  const remember = (what: 'raw' | 'json' | 'path') => {
+  const remember = (what: 'body' | 'path') => {
     setCopied(what);
     window.setTimeout(() => setCopied(undefined), 1400);
   };
 
-  /** The payload formatted, which is what the reader is looking at. */
-  const copyJson = (request: CapturedRequest) => {
-    copyText(prettify(request));
-    remember('json');
-  };
-
-  /** The payload byte for byte as it arrived, for pasting somewhere that must match exactly. */
-  const copyRaw = (request: CapturedRequest) => {
-    copyText(request.body ?? '');
-    remember('raw');
+  /**
+   * Copy whatever the switch is showing: the formatted payload in Tree, the bytes as they
+   * arrived in Raw. Two buttons made the reader decide which one they wanted, when the view
+   * they had already chosen answers that.
+   */
+  const copyBody = (request: CapturedRequest, formatted: boolean) => {
+    copyText(formatted ? prettify(request) : request.body ?? '');
+    remember('body');
   };
 
   return (
@@ -393,13 +391,13 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                         </span>
                       )}
                       <span className="capture-copy">
-                        {isJson && (
-                          <button type="button" className="btn btn--sm" onClick={() => copyJson(current)}>
-                            {copied === 'json' ? 'Copied' : 'Copy JSON'}
-                          </button>
-                        )}
-                        <button type="button" className="btn btn--sm" onClick={() => copyRaw(current)}>
-                          {copied === 'raw' ? 'Copied' : 'Copy raw'}
+                        <button
+                          type="button"
+                          className="btn btn--sm"
+                          onClick={() => copyBody(current, !showRaw)}
+                          title={showRaw ? 'Copy the body as it arrived' : 'Copy the formatted payload'}
+                        >
+                          {copied === 'body' ? 'Copied' : 'Copy'}
                         </button>
                       </span>
                     </div>
