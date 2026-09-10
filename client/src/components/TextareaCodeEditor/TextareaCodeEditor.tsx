@@ -19,6 +19,7 @@ const placeholder = JSON.stringify(
 const TextareaCodeEditor = ({ field, form }: FieldProps<string, NewMockFormValues>) => (
   <CodeEditor
     name={field.name}
+    ariaLabel="HTTP response body"
     value={field.value ?? ''}
     contentType={form.values.contentType}
     placeholder={placeholder}

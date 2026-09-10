@@ -5,7 +5,7 @@ const SelectExpirationTime = (props: { name: string }) => {
   const { name } = props;
 
   return (
-    <Field as="select" component="select" name={name}>
+    <Field as="select" component="select" name={name} id={name} aria-label="When this mock expires">
       <option value="never">Never expire</option>
       <option value="1year">Expire in 1 year</option>
       <option value="1month">Expire in 1 month</option>

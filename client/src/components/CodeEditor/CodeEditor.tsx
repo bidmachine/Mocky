@@ -25,6 +25,8 @@ interface CodeEditorProps {
   name: string;
   value: string;
   contentType: string;
+  /** Accessible name for the editor's text input. */
+  ariaLabel?: string;
   placeholder?: string;
   readOnly?: boolean;
   minLines?: number;
@@ -44,6 +46,7 @@ const CodeEditor = ({
   name,
   value,
   contentType,
+  ariaLabel,
   placeholder,
   readOnly = false,
   minLines = 14,
@@ -102,6 +105,9 @@ const CodeEditor = ({
           tabSize: 2,
           highlightActiveLine: !readOnly,
           highlightGutterLine: !readOnly,
+          // Ace renders its own hidden textarea, so its accessible name is set here rather than
+          // through a `<label htmlFor>`, which has no stable id to point at.
+          textInputAriaLabel: ariaLabel ?? name,
         }}
       />
     </div>

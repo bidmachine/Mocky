@@ -210,12 +210,23 @@
  * was a different height and radius again. One set of values for all three.
  */
 .bar .btn,
-.theme-toggle {
-  height: 36px;
+button.theme-toggle {
+  /* 44px is the touch target floor; these were 36px, and the toggle only 36px wide. */
+  height: 44px;
+  min-height: 44px;
+  min-width: 44px;
   border-radius: 5px;
   font-weight: 600;
   letter-spacing: 0.04em;
   transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+/*
+ * The theme sets `.btn__text` to 10.29px, which is below the 12px floor and smaller than the
+ * button that contains it. The label follows the button.
+ */
+.bar .btn .btn__text {
+  font-size: 12px;
 }
 
 .bar .btn {
@@ -290,9 +301,19 @@
 [data-theme='dark'] .badge-info,
 [data-theme='dark'] .badge-success,
 [data-theme='dark'] .badge-warning,
-[data-theme='dark'] .badge-danger,
-[data-theme='dark'] .badge-dark {
+[data-theme='dark'] .badge-danger {
   color: #0d1016 !important;
+}
+
+/*
+ * `.badge-dark` was given the same near-black label as the solid badges but kept Bootstrap's
+ * dark background, leaving the OPTIONAL tag at 1.66:1 — dark text on a dark chip. It is an
+ * outline badge here instead, which reads on this surface without competing with REQUIRED.
+ */
+[data-theme='dark'] .badge-dark {
+  color: var(--text-soft) !important;
+  background: transparent !important;
+  border: 1px solid var(--border-strong) !important;
 }
 
 [data-theme='dark'] .badge-info { background: #4aa3b8 !important; }
@@ -341,4 +362,56 @@
 
 [data-theme='dark'] .ace-github .ace_constant.ace_language {
   color: var(--code-bool) !important;
+}
+
+/*
+ * A visible focus ring on everything that takes focus.
+ *
+ * The vendor stylesheet sets `outline: none` on form controls and leaves a transparent
+ * box-shadow in its place, so tabbing through the designer moved an invisible cursor: of the
+ * nineteen focusable elements, only the two navbar buttons showed where you were.
+ */
+:focus-visible {
+  outline: 2px solid var(--accent, #4aa3b8) !important;
+  outline-offset: 2px !important;
+}
+
+.form-control:focus-visible,
+.textarea--code:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent, #4aa3b8) !important;
+  outline-offset: 1px !important;
+  border-color: var(--accent, #4aa3b8) !important;
+}
+
+/* react-select renders its own container, so the ring goes on the wrapper it marks as focused */
+.input-select [class*='--is-focused'] {
+  outline: 2px solid var(--accent, #4aa3b8) !important;
+  outline-offset: 1px;
+}
+
+/*
+ * Footer links were #666 on #1e212a — 2.8:1, under the 4.5:1 floor for 12px text. The markup
+ * uses the `<footer>` element rather than a `.footer` class, so the element is the selector.
+ */
+footer a,
+footer .type--fine-print,
+footer li a,
+a.type--fine-print {
+  color: var(--text-soft) !important;
+}
+
+/* Visible only to a screen reader: carries "required" where the badge is decoration. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

@@ -20,3 +20,30 @@
 .editor--code .ace_gutter {
   background: var(--surface-sunken);
 }
+
+
+/*
+ * Show the vertical scrollbar.
+ *
+ * Ace hides it by default, so a bid request pasted into a 28-line box gave no sign that another
+ * thousand lines were below the fold: the payload looked truncated rather than scrolled. The
+ * scrollbar is the only affordance saying otherwise, since the editor's height is Ace's to own
+ * and cannot be dragged.
+ */
+.editor--code .ace_scrollbar-v {
+  display: block !important;
+  width: 10px;
+}
+
+.editor--code .ace_scrollbar-v::-webkit-scrollbar {
+  width: 10px;
+}
+
+.editor--code .ace_scrollbar-v::-webkit-scrollbar-thumb {
+  background: var(--border-strong, #6b7280);
+  border-radius: 5px;
+}
+
+.editor--code .ace_scrollbar-v::-webkit-scrollbar-track {
+  background: var(--surface-sunken);
+}

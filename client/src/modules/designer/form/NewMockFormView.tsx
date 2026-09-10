@@ -13,7 +13,20 @@ import CleanConfirmationOnSubmit from './CleanConfirmationOnSubmit';
 import { NewMockFormValues } from './types';
 
 const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
-  const { touched, errors, isSubmitting, submitCount, isValid } = props;
+  const { touched, errors, isSubmitting, submitCount, isValid, values } = props;
+  const errorAlert = React.useRef<HTMLDivElement | null>(null);
+
+  /*
+   * The body field shows a JSON sample as its placeholder, which reads as content that is
+   * already there. An empty body is legitimate — a 204 has none — so this warns rather than
+   * blocks, and only once the field has been left alone.
+   */
+  const bodyIsEmpty = (values.body ?? '').trim() === '';
+
+  // A failed submit has to reach someone who is not looking at the bottom of a long form.
+  React.useEffect(() => {
+    if (submitCount > 0 && !isValid) errorAlert.current?.focus();
+  }, [submitCount, isValid]);
 
   return (
     <section className="space--xxs bg--secondary">
@@ -26,45 +39,45 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
 
                 <div className="row">
                   <div className="col-md-6">
-                    <Label>HTTP Status</Label>
+                    <Label htmlFor="status" required>HTTP Status</Label>
                     <RequiredTag />
                     <FastField type="text" name="status" component={SelectHttpStatusCode} />
                     <ErrorFeedback name="status" />
-                    <Help>The HTTP Code of the HTTP response you'll receive.</Help>
+                    <Help id="status-help">The HTTP Code of the HTTP response you'll receive.</Help>
                   </div>
                 </div>
 
                 <div className="row mt-3">
                   <div className="col-md-6">
-                    <Label>Response Content Type</Label>
+                    <Label htmlFor="contentType" required>Response Content Type</Label>
                     <RequiredTag />
 
                     <FastField type="text" name="contentType" component={SelectContentType} />
                     <ErrorFeedback name="contentType" />
-                    <Help>The Content-Type header that will be sent with the response.</Help>
+                    <Help id="contentType-help">The Content-Type header that will be sent with the response.</Help>
                   </div>
                   <div className="col-md-6">
-                    <Label>Charset</Label>
+                    <Label htmlFor="charset" required>Charset</Label>
                     <RequiredTag />
 
                     <FastField type="text" name="charset" component={SelectCharset} />
                     <ErrorFeedback name="charset" />
-                    <Help>The Charset used to encode/decode your payload.</Help>
+                    <Help id="charset-help">The Charset used to encode/decode your payload.</Help>
                   </div>
                 </div>
                 <div className="row">
                   <div className="col-md-12">
-                    <Label>HTTP Headers</Label>
+                    <Label htmlFor="headers">HTTP Headers</Label>
                     <OptionalTag />
 
                     <FastField type="text" name="headers" component={TextareaHeaders} />
                     <ErrorFeedback name="headers" />
-                    <Help>Customize the HTTP headers sent in the response. Define the headers as a JSON object.</Help>
+                    <Help id="headers-help">Customize the HTTP headers sent in the response. Define the headers as a JSON object.</Help>
                   </div>
                 </div>
                 <div className="row mt-3">
                   <div className="col-md-12">
-                    <Label>HTTP Response Body</Label>
+                    <Label htmlFor="body">HTTP Response Body</Label>
                     <OptionalTag />
 
                     <FastField type="text" name="body" component={TextareaCodeEditor} />
@@ -78,15 +91,18 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                 </h5>
                 <div className="row">
                   <div className="col-md-6">
-                    <Label>Secret token</Label>
+                    <Label htmlFor="secret">Secret token</Label>
 
                     <FastField
+                      id="secret"
                       type="text"
                       name="secret"
+                      aria-invalid={!!errors.secret && !!touched.secret}
+                      aria-describedby="secret-help"
                       className={`form-control ${!!errors.secret && !!touched.secret ? 'input--error' : ''}`}
                     />
                     <ErrorFeedback name="secret" />
-                    <Help>
+                    <Help id="secret-help">
                       Required to update/delete your mock.
                       <br />
                       If blank, a random secret will be generated.
@@ -94,14 +110,17 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                   </div>
 
                   <div className="col-md-6 mb-5">
-                    <Label>Mock identifier</Label>
+                    <Label htmlFor="name">Mock identifier</Label>
                     <FastField
+                      id="name"
                       type="string"
                       name="name"
+                      aria-invalid={!!errors.name && !!touched.name}
+                      aria-describedby="name-help"
                       className={`form-control ${!!errors.name && !!touched.name ? 'input--error' : ''}`}
                     />
                     <ErrorFeedback name="name" />
-                    <Help>
+                    <Help id="name-help">
                       Just a name to identify this mock in your management console later.
                       <br />
                       &nbsp;
@@ -109,9 +128,20 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                   </div>
                 </div>
                 {submitCount > 0 && !isValid && (
-                  <div className="alert bg--error">
+                  <div className="alert bg--error" role="alert" ref={errorAlert} tabIndex={-1}>
                     <div className="alert__body">
                       <span>Please fix the errors before saving your mock!</span>
+                    </div>
+                  </div>
+                )}
+
+                {bodyIsEmpty && (
+                  <div className="alert bg--warning" role="status">
+                    <div className="alert__body">
+                      <span>
+                        The response body is empty &mdash; the greyed-out JSON is only an example. Your mock will
+                        return an empty response unless you type or paste a body.
+                      </span>
                     </div>
                   </div>
                 )}
@@ -136,26 +166,47 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
   );
 };
 
+/*
+ * "Required" is said in the label rather than only in a floated badge: the badge is decoration,
+ * and a field's obligation has to survive being read out of order by a screen reader.
+ */
 const RequiredTag = () => (
   <>
-    &nbsp;<span className="badge badge-info float-right">REQUIRED</span>
+    &nbsp;<span className="badge badge-info float-right field-tag" aria-hidden="true">REQUIRED</span>
   </>
 );
 
 const OptionalTag = () => (
   <>
-    &nbsp;<span className="badge badge-dark type--fade float-right">OPTIONAL</span>
+    &nbsp;<span className="badge badge-dark type--fade float-right field-tag" aria-hidden="true">OPTIONAL</span>
   </>
 );
 
-const Label = (props: React.PropsWithChildren<any>) => <span className="color--dark">{props.children}</span>;
-
-const ErrorFeedback = (props: { name: string }) => (
-  <ErrorMessage component="span" className="form-text color--error" name={props.name} />
+/**
+ * A real `<label htmlFor>`, so clicking the name focuses the field and a screen reader announces
+ * it. These used to be `<span>`s, which left every control on the page unnamed.
+ */
+const Label = (props: React.PropsWithChildren<{ htmlFor: string; required?: boolean }>) => (
+  <label className="color--dark field-label" htmlFor={props.htmlFor}>
+    {props.children}
+    {props.required && <span className="sr-only"> (required)</span>}
+  </label>
 );
 
-const Help = (props: React.PropsWithChildren<any>) => (
-  <small className="form-text color--primary">{props.children}</small>
+const ErrorFeedback = (props: { name: string }) => (
+  <ErrorMessage name={props.name}>
+    {(message) => (
+      <span className="form-text color--error" role="alert" id={`${props.name}-error`}>
+        {message}
+      </span>
+    )}
+  </ErrorMessage>
+);
+
+const Help = (props: React.PropsWithChildren<{ id?: string }>) => (
+  <small className="form-text color--primary" id={props.id}>
+    {props.children}
+  </small>
 );
 
 export default NewMockFormView;
