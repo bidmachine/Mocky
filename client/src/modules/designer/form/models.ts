@@ -8,6 +8,9 @@ export const initialState: NewMockFormValues = {
   contentType: 'application/json',
   headers: '',
   body: '',
+  // Kept empty on purpose: the designer no longer asks for a secret, and an empty one is what
+  // makes MockAPITransformer generate a random 36-character token. The API still accepts a
+  // caller-chosen secret, which is how scripts and agents own their mocks.
   secret: '',
   name: '',
   // Someone creating a mock in the designer is keeping it, and the list in this browser holds the

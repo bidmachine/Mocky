@@ -103,31 +103,17 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                     <ErrorFeedback name="body" />
                   </div>
                 </div>
-                <hr className="mt-4"></hr>
-                <h5 className="mb-2">
-                  Managing your mock after its creation
-                  <OptionalTag />
-                </h5>
-                <div className="row">
-                  <div className="col-md-6 mb-5">
-                    <Label htmlFor="secret">Secret token</Label>
-
-                    <FastField
-                      id="secret"
-                      type="text"
-                      name="secret"
-                      aria-invalid={!!errors.secret && !!touched.secret}
-                      aria-describedby="secret-help"
-                      className={`form-control ${!!errors.secret && !!touched.secret ? 'input--error' : ''}`}
-                    />
-                    <ErrorFeedback name="secret" />
-                    <Help id="secret-help">
-                      Required to update/delete your mock.
-                      <br />
-                      If blank, a random secret will be generated.
+                <div className="row mt-3">
+                  <div className="col-md-6 mb-4">
+                    <Label htmlFor="expiration">Expiration</Label>
+                    <div className="expiration-select input-select">
+                      <SelectExpirationTime name="expiration" />
+                    </div>
+                    <Help id="expiration-help">
+                      When the mock is deleted, along with anything it captured. Pick <em>Never</em> for one you
+                      intend to keep.
                     </Help>
                   </div>
-
                 </div>
                 {submitCount > 0 && !isValid && (
                   <div className="alert bg--error" role="alert" ref={errorAlert} tabIndex={-1}>
@@ -148,15 +134,10 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                   </div>
                 )}
                 <div className="row">
-                  <div className="col-md-8 ">
+                  <div className="col-md-12">
                     <button type="submit" className="btn btn--primary type--uppercase" disabled={isSubmitting}>
                       Generate my HTTP Response
                     </button>
-                  </div>
-                  <div className="col-md-4 ">
-                    <div className="expiration-select input-select">
-                      <SelectExpirationTime name="expiration" />
-                    </div>
                   </div>
                 </div>
               </Form>
