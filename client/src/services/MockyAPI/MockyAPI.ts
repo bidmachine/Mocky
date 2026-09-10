@@ -58,6 +58,7 @@ const captures = async (mock: MockStored, page = 1, perPage = 50): Promise<Captu
       total: response.data.total,
       page: response.data.page,
       perPage: response.data.per_page,
+      captureLimit: response.data.capture_limit ?? 0,
     };
   } catch (error) {
     console.error(`Could not read the captured requests: ${error}`);

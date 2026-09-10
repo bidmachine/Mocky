@@ -99,13 +99,14 @@ class MockApiService(repository: MockV3Repository, settings: Settings) extends H
           case false => NotFound()
           case true =>
             repository.listCaptures(id, list.perPage, (list.page - 1) * list.perPage).flatMap {
-              case (items, total) =>
+              case (items, total, captureLimit) =>
                 Ok(
                   Json.obj(
                     "items" -> items.asJson,
                     "total" -> total.asJson,
                     "page" -> list.page.asJson,
-                    "per_page" -> list.perPage.asJson
+                    "per_page" -> list.perPage.asJson,
+                    "capture_limit" -> captureLimit.asJson
                   )
                 )
             }

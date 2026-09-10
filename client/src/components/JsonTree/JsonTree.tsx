@@ -23,12 +23,13 @@ interface JsonTreeProps {
 const JsonTree = ({ value, search, onSelectPath, onMatchCount }: JsonTreeProps) => {
   const container = React.useRef<HTMLDivElement | null>(null);
 
-  // Counting the rendered marks is what the reader actually sees, rather than a second
-  // traversal that could disagree with the highlighting.
+  // Counted by traversing the payload rather than by counting rendered <mark> elements: a folded
+  // branch removes its marks from the DOM without re-running this effect, which left the toolbar
+  // reporting a total the reader could no longer step through.
   React.useEffect(() => {
     if (!onMatchCount) return;
 
-    onMatchCount(search ? container.current?.querySelectorAll('mark').length ?? 0 : 0);
+    onMatchCount(search ? countMatches(value, null, search) : 0);
   }, [search, value, onMatchCount]);
 
   return (
@@ -178,7 +179,13 @@ const render = (value: Json): string => {
   return String(value);
 };
 
-/** Whether this node, or anything under it, contains the term. */
+/**
+ * Whether this node, or anything under it, contains the term.
+ *
+ * Searched against the whole value, not the clipped form `render` draws: a signed URL or a VAST
+ * payload runs past MAX_VALUE_CHARS, and matching the display string reported "no matches" for a
+ * term the value plainly contained.
+ */
 const subtreeMatches = (value: Json, name: string | null, search: string): boolean => {
   if (name !== null && name.toLowerCase().includes(search)) return true;
 
@@ -186,7 +193,43 @@ const subtreeMatches = (value: Json, name: string | null, search: string): boole
     return Object.entries(value as object).some(([key, child]) => subtreeMatches(child, key, search));
   }
 
-  return render(value).toLowerCase().includes(search);
+  const text = typeof value === 'string' ? value : render(value);
+
+  return text.toLowerCase().includes(search);
+};
+
+/**
+ * How many times the term occurs in what is actually drawn.
+ *
+ * Counted against the clipped form on purpose: the toolbar steps through the rendered marks, so a
+ * total that included occurrences past MAX_VALUE_CHARS would promise matches that cannot be
+ * reached. A value that matches only beyond the clip still opens its branch — `subtreeMatches`
+ * searches the whole string — and the reader sees the "… (N chars)" marker telling them the rest
+ * is in Raw.
+ */
+const countMatches = (value: Json, name: string | null, search: string): number => {
+  const occurrences = (text: string): number => {
+    let count = 0;
+    let at = text.toLowerCase().indexOf(search);
+
+    while (at !== -1) {
+      count += 1;
+      at = text.toLowerCase().indexOf(search, at + search.length);
+    }
+
+    return count;
+  };
+
+  const inName = name !== null ? occurrences(name) : 0;
+
+  if (isBranch(value)) {
+    return (
+      inName +
+      Object.entries(value as object).reduce((total, [key, child]) => total + countMatches(child, key, search), 0)
+    );
+  }
+
+  return inName + occurrences(render(value));
 };
 
 /**

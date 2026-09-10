@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import JsonTree from '../../../components/JsonTree/JsonTree';
@@ -31,6 +31,10 @@ const CapturedRequests = (props: { mock: MockStored }) => {
   const [selected, setSelected] = useState(0);
   const selectedRef = useRef(0);
   selectedRef.current = selected;
+  // The poll needs the current list without taking a dependency on it, which would rebuild the
+  // interval on every tick.
+  const itemsRef = useRef<CapturedRequest[]>([]);
+  itemsRef.current = items;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState('');
@@ -61,21 +65,29 @@ const CapturedRequests = (props: { mock: MockStored }) => {
         return;
       }
 
-      setItems((previous) => {
-        // Keep whatever the reader is looking at pinned when a poll brings newer requests in
-        if (!options.quiet) {
-          setSelected(0);
-        } else if (previous[selectedRef.current]) {
-          const stillThere = page.items.findIndex(
-            (item) => item.receivedAt === previous[selectedRef.current].receivedAt
-          );
-          setSelected(stillThere === -1 ? 0 : stillThere);
-        }
+      // The server decides whether capture is on. The local copy is one browser's memory of a
+      // toggle, so it is wrong in every other browser and for any mock a script enabled.
+      if (page.captureLimit !== (mock.captureLimit ?? 0)) {
+        dispatch(setCaptureLimit({ id: mock.id, limit: page.captureLimit }));
+      }
 
-        return page.items;
-      });
+      // Keep whatever the reader is looking at pinned when a poll brings newer requests in.
+      // Computed outside the updater: a state setter must not be called from inside another
+      // updater, which React may run more than once.
+      const anchor = itemsRef.current[selectedRef.current];
+
+      if (!options.quiet) {
+        setSelected(0);
+      } else if (anchor) {
+        // Matched on id, not receivedAt: several requests can share a millisecond, and the
+        // reader's selection would hop to whichever of them came first.
+        const stillThere = page.items.findIndex((item) => item.id === anchor.id);
+        setSelected(stillThere === -1 ? 0 : stillThere);
+      }
+
+      setItems(page.items);
     },
-    [mock]
+    [mock, dispatch]
   );
 
   // The manager has never read from the server before, so this is the one place that fetches.
@@ -143,14 +155,36 @@ const CapturedRequests = (props: { mock: MockStored }) => {
       return;
     }
 
-    setItems((previous) => {
-      const remaining = previous.filter((item) => item.id !== request.id);
-      setSelected((current) => Math.min(current, Math.max(remaining.length - 1, 0)));
-      return remaining;
-    });
+    // Re-anchored on the request being read, not on its index: deleting a row above it shifts
+    // every later index down, and clamping alone would silently slide the detail pane onto a
+    // different request while the reader was looking at it.
+    const anchor = items[selected];
+    const remaining = items.filter((item) => item.id !== request.id);
+    const stillThere = remaining.findIndex((item) => item.id === anchor?.id);
+
+    setItems(remaining);
+    setSelected(stillThere === -1 ? 0 : stillThere);
   };
 
   const current = items[selected];
+
+  /**
+   * Start each request fresh.
+   *
+   * "Show all" lifts the clipping guard that keeps a 64KB single-line body from freezing the tab;
+   * it used to stay lifted for every request opened afterwards. The search position and match
+   * count outlived their request too, and a body that is not JSON never re-runs the counter that
+   * would correct them.
+   */
+  const currentId = current?.id;
+
+  useEffect(() => {
+    setShowWhole(false);
+    setSearch('');
+    setMatches(0);
+    setAtMatch(0);
+    setPath(undefined);
+  }, [currentId]);
 
   /**
    * Step through the highlighted matches and scroll each one into view.
@@ -169,9 +203,27 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
   // A body that is not JSON has no tree and cannot be searched, so the controls that imply
   // otherwise are disabled rather than left offering something that does nothing.
-  const parsed = current?.body !== undefined ? parseJson(current.body) : undefined;
+  //
+  // Both are memoised on the request itself: a poll re-renders this component every three
+  // seconds and every keystroke in the search box re-renders it again, and parsing a bid request
+  // on each of those was the whole document's worth of work for a view that had not changed.
+  const parsed = useMemo(() => (current?.body !== undefined ? parseJson(current.body) : undefined), [current]);
   const isJson = parsed !== undefined;
   const showRaw = raw || !isJson;
+  const pretty = useMemo(() => (current ? prettify(current) : ''), [current]);
+
+  /**
+   * The term is in the payload but not in what the tree draws, because the value it sits in runs
+   * past the per-value clip. Saying "no matches" there is a lie the reader acts on, so the
+   * toolbar points at Raw instead.
+   */
+  const hiddenMatch = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    if (term === '' || matches > 0) return false;
+
+    return (current?.body ?? '').toLowerCase().includes(term);
+  }, [search, matches, current]);
 
   const remember = (what: 'body' | 'path') => {
     setCopied(what);
@@ -387,7 +439,11 @@ const CapturedRequests = (props: { mock: MockStored }) => {
                       />
                       {search.trim() !== '' && isJson && (
                         <span className="capture-matches" role="status">
-                          {matches === 0 ? 'no matches' : `${atMatch + 1} of ${matches}`}
+                          {matches > 0
+                            ? `${atMatch + 1} of ${matches}`
+                            : hiddenMatch
+                            ? 'only past the clipped text — see Raw'
+                            : 'no matches'}
                         </span>
                       )}
                       <span className="capture-copy">
@@ -423,11 +479,11 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
                     {showRaw ? (
                       <>
-                        <pre className="capture-raw">{clipped(prettify(current), showWhole)}</pre>
-                        {isClipped(prettify(current), showWhole) && (
+                        <pre className="capture-raw">{clipped(pretty, showWhole)}</pre>
+                        {isClipped(pretty, showWhole) && (
                           <div className="capture-clip">
                             Showing the first {PREVIEW_CHARS.toLocaleString()} of{' '}
-                            {prettify(current).length.toLocaleString()} characters.
+                            {pretty.length.toLocaleString()} characters.
                             <button type="button" className="btn btn--sm" onClick={() => setShowWhole(true)}>
                               Show all
                             </button>

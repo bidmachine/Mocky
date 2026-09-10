@@ -26,6 +26,8 @@ export interface CapturedPage {
   total: number;
   page: number;
   perPage: number;
+  /** What the server keeps for this mock; 0 means capture is off. Authoritative over local state. */
+  captureLimit: number;
 }
 
 /** Shape the API actually returns, in snake_case. */
@@ -48,4 +50,5 @@ export interface CapturedPageAPI {
   total: number;
   page: number;
   per_page: number;
+  capture_limit?: number;
 }

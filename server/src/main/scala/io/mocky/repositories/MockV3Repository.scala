@@ -267,11 +267,15 @@ class MockV3Repository(
   /**
     * Requests captured for a mock, newest first, with the total so a caller can page through.
     */
-  def listCaptures(id: UUID, limit: Int, offset: Int): IO[(List[CapturedRequest], Long)] = {
+  def listCaptures(id: UUID, limit: Int, offset: Int): IO[(List[CapturedRequest], Long, Int)] = {
     val queries = for {
       items <- SQL.LIST_CAPTURES(id, limit, offset).query[CapturedRequest].to[List]
       total <- SQL.COUNT_CAPTURES(id).query[Long].unique
-    } yield (items, total)
+      // The caller's own idea of whether capture is on lives in one browser's local storage, so
+      // it is wrong in every other browser and for any mock a script enabled. The server's value
+      // is the one that decides what actually gets recorded.
+      keep <- SQL.GET_CAPTURE_LIMIT(id).query[Int].option
+    } yield (items, total, keep.getOrElse(0))
 
     queries.transact(transactor)
   }
