@@ -434,9 +434,18 @@ a.type--fine-print {
 }
 
 [data-theme='dark'] [class*='-singleValue'],
-[data-theme='dark'] [class*='-Input'],
-[data-theme='dark'] [class*='-control'] input {
+[data-theme='dark'] [class*='-Input'] {
   color: var(--text) !important;
+}
+
+/*
+ * react-select keeps a 2px-wide input for typing. Giving it the surface colour painted a short
+ * vertical bar inside each field, so it only takes the text colour and stays transparent.
+ */
+[data-theme='dark'] [class*='-control'] input {
+  background: transparent !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
 }
 
 [data-theme='dark'] [class*='-placeholder'] {

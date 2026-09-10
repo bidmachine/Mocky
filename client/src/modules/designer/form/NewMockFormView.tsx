@@ -17,9 +17,9 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
   const errorAlert = React.useRef<HTMLDivElement | null>(null);
 
   /*
-   * The body field shows a JSON sample as its placeholder, which reads as content that is
-   * already there. An empty body is legitimate — a 204 has none — so this warns rather than
-   * blocks, and only once the field has been left alone.
+   * An empty body is legitimate — a 204 has none — so this warns rather than blocks. It used to
+   * be silent, and the field showed a JSON sample as its placeholder, so a mock serving nothing
+   * looked like a mock serving that sample.
    */
   const bodyIsEmpty = (values.body ?? '').trim() === '';
 
@@ -139,8 +139,8 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                   <div className="alert bg--warning" role="status">
                     <div className="alert__body">
                       <span>
-                        The response body is empty &mdash; the greyed-out JSON is only an example. Your mock will
-                        return an empty response unless you type or paste a body.
+                        The response body is empty. Your mock will return an empty response unless you type or paste
+                        a body.
                       </span>
                     </div>
                   </div>
