@@ -74,6 +74,20 @@ class MockAPIServiceSpec extends AnyWordSpec with MockFactory with Matchers with
       root.expireAt.as[ZonedDateTime].getOption(json).value.isBefore(ZonedDateTime.now().plusDays(1).plusMinutes(1))
     }
 
+    "give a mock created without an expiration the default lifetime" in {
+      // How a script or an agent posts: it names no expiration, and the mock must not become
+      // immortal. Two weeks is the default, so the deadline lands there rather than never.
+      (repository.insert _).when(*).returns(IO.pure(MockCreated(id)))
+      val json = createJson.hcursor.downField("expiration").delete.top.get
+      val response = serve(Request[IO](POST, uri"/api/mock").withEntity(json))
+      response.status shouldBe Status.Created
+
+      val body = response.as[Json].unsafeRunSync()
+      val expireAt = root.expireAt.as[ZonedDateTime].getOption(body).value
+      expireAt.isAfter(ZonedDateTime.now().plusDays(14).minusMinutes(1)) shouldBe true
+      expireAt.isBefore(ZonedDateTime.now().plusDays(14).plusMinutes(1)) shouldBe true
+    }
+
     "create a mock with an empty content" in {
       (repository.insert _).when(*).returns(IO.pure(MockCreated(id)))
       val json = createJson.hcursor.downField("content").delete.top.get

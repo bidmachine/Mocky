@@ -1,0 +1,507 @@
+/*
+ * Dark theme.
+ *
+ * The site's theme is a 196 KB stylesheet served from a CDN, so it cannot be edited — the dark
+ * theme is an override layered on top of it. A handful of colours account for most of that file
+ * (#fff, #252525, #ececec, #fafafa), which is what makes overriding it practical rather than a
+ * rewrite: the rules below re-point those surfaces and let everything inherited follow.
+ *
+ * Tokens are declared here and consumed by the app's own stylesheets, so a component never picks
+ * a literal colour that only works in one theme.
+ */
+
+:root {
+  --surface: #ffffff;
+  --surface-raised: #f7f7f9;
+  --surface-sunken: #f0f0f4;
+  --text: #212529;
+  --text-soft: #495057;
+  --text-faint: #6c757d;
+  --border: #dee2e6;
+  --border-strong: #ced4da;
+  --accent: #4a90e2;
+  --accent-hover: #3a7cc8;
+  --surface-selected: #e8f0fb;
+  --accent-text: #ffffff;
+  --code-key: #0550ae;
+  --code-str: #1a7f37;
+  --code-num: #b35900;
+  --code-bool: #8250df;
+  --code-null: #8a8f9c;
+  --hit: #ffe08a;
+  --hit-text: #3a2c05;
+  --danger: #721c24;
+  --danger-bg: #f8d7da;
+  --warning: #856404;
+  --warning-bg: #fff3cd;
+  --method-get: #2c6e9b;
+  --method-post: #276b4a;
+  --method-put: #8a6314;
+  --method-delete: #9e3a31;
+  --path: #a9662a;
+  --delete: #dc3545;
+  --info-bg: #e7f1fb;
+  --info-border: #b8d4ee;
+  --info-text: #1c3f5e;
+}
+
+[data-theme='dark'] {
+  --surface: #16181f;
+  --surface-raised: #1e212a;
+  --surface-sunken: #101219;
+  --text: #e6e8ee;
+  --text-soft: #a8adbb;
+  --text-faint: #8f95a6;
+  --border: #2a2d38;
+  --border-strong: #3b3f4d;
+  --accent: #5b9ce6;
+  --accent-hover: #7bb0ec;
+  --surface-selected: #252a36;
+  --accent-text: #0d1016;
+  --code-key: #79b8ff;
+  --code-str: #85d996;
+  --code-num: #e0a458;
+  --code-bool: #c99bea;
+  --code-null: #6f7482;
+  --hit: #6b5416;
+  --hit-text: #ffe8b0;
+  --danger: #f0918a;
+  --danger-bg: #33191a;
+  --warning: #e0be6d;
+  --warning-bg: #2f2716;
+  --method-get: #79b8ff;
+  --method-post: #85d996;
+  --method-put: #e0a458;
+  --method-delete: #f0918a;
+  --path: #e0a458;
+  --delete: #f0918a;
+  --info-bg: #16273a;
+  --info-border: #24425f;
+  --info-text: #9fc4e4;
+}
+
+/* ---------------------------------------------------------------------------
+ * Re-point the vendor theme's surfaces. These selectors mirror the ones the CDN
+ * stylesheet paints, which is why they are broad: the goal is to flip a ground,
+ * not to restyle a component.
+ * ------------------------------------------------------------------------- */
+
+[data-theme='dark'] body,
+[data-theme='dark'] .main-container {
+  background: var(--surface);
+  color: var(--text);
+}
+
+[data-theme='dark'] .bg--secondary,
+[data-theme='dark'] .bg--white,
+[data-theme='dark'] .boxed,
+[data-theme='dark'] .nav-container,
+[data-theme='dark'] .bar,
+[data-theme='dark'] footer {
+  background: var(--surface-raised) !important;
+  color: var(--text);
+}
+
+[data-theme='dark'] .bar,
+[data-theme='dark'] .nav-container,
+[data-theme='dark'] .boxed,
+[data-theme='dark'] footer {
+  border-color: var(--border) !important;
+}
+
+[data-theme='dark'] h1,
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] h4,
+[data-theme='dark'] h5,
+[data-theme='dark'] h6,
+[data-theme='dark'] p,
+[data-theme='dark'] span,
+[data-theme='dark'] li,
+[data-theme='dark'] label,
+[data-theme='dark'] div {
+  color: inherit;
+}
+
+[data-theme='dark'] .type--fade,
+[data-theme='dark'] small {
+  color: var(--text-faint) !important;
+}
+
+/* Form controls: the vendor theme paints these white with a light border */
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select,
+[data-theme='dark'] .form-control {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border-strong) !important;
+}
+
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: var(--text-faint) !important;
+}
+
+/* The theme colours the inner label separately, so styling the button alone leaves
+   near-black text sitting on the dark ground */
+[data-theme='dark'] .btn:not(.btn--primary),
+[data-theme='dark'] .btn:not(.btn--primary) .btn__text {
+  background: var(--surface-raised);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+[data-theme='dark'] .btn:not(.btn--primary) .btn__text {
+  background: none;
+}
+
+[data-theme='dark'] table,
+[data-theme='dark'] .table {
+  color: var(--text);
+}
+
+[data-theme='dark'] .table--alternate-row tbody tr:nth-child(even) {
+  background: var(--surface-raised);
+}
+
+[data-theme='dark'] .table td {
+  border-color: var(--border);
+}
+
+/* Links keep the accent, which is legible on both grounds */
+[data-theme='dark'] a {
+  color: var(--accent);
+}
+
+/*
+ * Two logo files ship with the theme: one drawn in dark ink, one in light. Each theme shows the
+ * one that is legible on its ground.
+ *
+ * The vendor stylesheet already has rules for these class names and hides `.logo-light`
+ * outright, so both sides of the swap have to override it.
+ */
+.logo-link .logo-dark {
+  display: inline-block !important;
+}
+
+.logo-link .logo-light {
+  display: none !important;
+}
+
+[data-theme='dark'] .logo-link .logo-dark {
+  display: none !important;
+}
+
+[data-theme='dark'] .logo-link .logo-light {
+  display: inline-block !important;
+}
+
+/* The toggle sits after the buttons, so it needs the gap on its left instead */
+.theme-toggle {
+  margin: 0 0 0 6px;
+}
+
+/*
+ * Navigation buttons.
+ *
+ * The theme leaves these at weight 400 with 3.96px vertical padding and a border that does not
+ * match the fill, so they read as flat labels rather than controls, and the toggle beside them
+ * was a different height and radius again. One set of values for all three.
+ */
+.bar .btn,
+button.theme-toggle {
+  /* 44px is the touch target floor; these were 36px, and the toggle only 36px wide. */
+  height: 44px;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+/*
+ * The theme sets `.btn__text` to 10.29px, which is below the 12px floor and smaller than the
+ * button that contains it. The label follows the button.
+ */
+.bar .btn .btn__text {
+  font-size: 12px;
+}
+
+.bar .btn {
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.bar .btn:not(.btn--primary):hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.bar .btn:not(.btn--primary):hover .btn__text {
+  color: var(--accent) !important;
+}
+
+/* The primary action should read as one solid shape, not a fill inside a mismatched border */
+.bar .btn--primary,
+[data-theme='dark'] .bar .btn--primary {
+  border-color: var(--accent) !important;
+}
+
+.bar .btn--primary:hover,
+[data-theme='dark'] .bar .btn--primary:hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * Surfaces the vendor theme still paints light, found by walking the rendered
+ * page for pale backgrounds and borders rather than by guessing.
+ * ------------------------------------------------------------------------- */
+
+/* Pale-blue notice banners: near-white text on a light ground is unreadable */
+[data-theme='dark'] .alert,
+[data-theme='dark'] .bg--primary {
+  background: var(--info-bg) !important;
+  border-color: var(--info-border) !important;
+  color: var(--info-text) !important;
+}
+
+[data-theme='dark'] .alert strong,
+[data-theme='dark'] .bg--primary strong {
+  color: var(--info-text) !important;
+}
+
+/* Primary buttons carried a blue label on a blue ground */
+[data-theme='dark'] .btn--primary,
+[data-theme='dark'] .btn--primary .btn__text {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-text) !important;
+}
+
+/* Light chrome borders (#d3d3d3, #ececec) read as white outlines on a dark ground */
+[data-theme='dark'] .btn,
+[data-theme='dark'] .table,
+[data-theme='dark'] .border--round,
+[data-theme='dark'] pre,
+[data-theme='dark'] .boxed {
+  border-color: var(--border) !important;
+}
+
+[data-theme='dark'] .badge-light {
+  background: var(--surface-sunken) !important;
+  color: var(--text-soft) !important;
+}
+
+/* Solid bootstrap badges keep their hue but need a legible label */
+[data-theme='dark'] .badge-info,
+[data-theme='dark'] .badge-success,
+[data-theme='dark'] .badge-warning,
+[data-theme='dark'] .badge-danger {
+  color: #0d1016 !important;
+}
+
+/*
+ * `.badge-dark` was given the same near-black label as the solid badges but kept Bootstrap's
+ * dark background, leaving the OPTIONAL tag at 1.66:1 — dark text on a dark chip. It is an
+ * outline badge here instead, which reads on this surface without competing with REQUIRED.
+ */
+[data-theme='dark'] .badge-dark {
+  color: var(--text-soft) !important;
+  background: transparent !important;
+  border: 1px solid var(--border-strong) !important;
+}
+
+[data-theme='dark'] .badge-info { background: #4aa3b8 !important; }
+[data-theme='dark'] .badge-success { background: #5faf77 !important; }
+[data-theme='dark'] .badge-warning { background: #cfa758 !important; }
+[data-theme='dark'] .badge-danger { background: #cd7167 !important; }
+
+/* The vendor theme paints every <pre> with a light ground of its own */
+[data-theme='dark'] pre,
+[data-theme='dark'] code {
+  background: var(--surface-sunken) !important;
+  color: var(--text-soft) !important;
+}
+
+/* Ace ships its own light theme; these are the surfaces it paints */
+[data-theme='dark'] .ace-github,
+[data-theme='dark'] .ace-github .ace_gutter {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_gutter {
+  background: var(--surface-sunken) !important;
+  color: var(--text-faint) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_marker-layer .ace_active-line {
+  background: var(--surface-raised) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_cursor {
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_string {
+  color: var(--code-str) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_variable {
+  color: var(--code-key) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_constant.ace_numeric {
+  color: var(--code-num) !important;
+}
+
+[data-theme='dark'] .ace-github .ace_constant.ace_language {
+  color: var(--code-bool) !important;
+}
+
+/*
+ * A visible focus ring on everything that takes focus.
+ *
+ * The vendor stylesheet sets `outline: none` on form controls and leaves a transparent
+ * box-shadow in its place, so tabbing through the designer moved an invisible cursor: of the
+ * nineteen focusable elements, only the two navbar buttons showed where you were.
+ */
+:focus-visible {
+  outline: 2px solid var(--accent, #4aa3b8) !important;
+  outline-offset: 2px !important;
+}
+
+.form-control:focus-visible,
+.textarea--code:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent, #4aa3b8) !important;
+  outline-offset: 1px !important;
+  border-color: var(--accent, #4aa3b8) !important;
+}
+
+/*
+ * react-select's own input is a bare <input> nested inside the control, so the rule above drew
+ * the focus ring around the text instead of around the field — a blue box sitting inside the
+ * box. The ring belongs on the control, which is what a person sees as the field.
+ */
+[class*='-control'] input:focus-visible,
+[class*='-control'] input:focus {
+  outline: none !important;
+  border-color: transparent !important;
+}
+
+/* react-select renders its own container, so the ring goes on the wrapper it marks as focused */
+.input-select [class*='--is-focused'],
+[class*='-control'][class*='--is-focused'],
+.boxed [class*='-control']:focus-within {
+  outline: 2px solid var(--accent, #4aa3b8) !important;
+  outline-offset: 1px;
+}
+
+/*
+ * Footer links were #666 on #1e212a — 2.8:1, under the 4.5:1 floor for 12px text. The markup
+ * uses the `<footer>` element rather than a `.footer` class, so the element is the selector.
+ */
+footer a,
+footer .type--fine-print,
+footer li a,
+a.type--fine-print {
+  color: var(--text-soft) !important;
+}
+
+/* Visible only to a screen reader: carries "required" where the badge is decoration. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+ * react-select in the dark theme.
+ *
+ * The three selects at the top of the designer — HTTP Status, Content Type, Charset — kept a
+ * white background while every other control on the page was #16181f, and the theme's near-white
+ * text was inherited into them: 1.06:1, white on white. The value stayed readable only because
+ * react-select paints it separately. It builds its control from divs with generated class names,
+ * so `.form-control` never reached it.
+ *
+ * Matching by class-name fragment covers the emotion-generated names without pinning the hashes,
+ * which change whenever the library is rebuilt.
+ */
+[data-theme='dark'] [class*='-control'] {
+  background: var(--surface) !important;
+  border-color: var(--border-strong) !important;
+}
+
+[data-theme='dark'] [class*='-singleValue'],
+[data-theme='dark'] [class*='-Input'] {
+  color: var(--text) !important;
+}
+
+/*
+ * react-select keeps a 2px-wide input for typing. Giving it the surface colour painted a short
+ * vertical bar inside each field, so it only takes the text colour and stays transparent.
+ */
+[data-theme='dark'] [class*='-control'] input {
+  background: transparent !important;
+  color: var(--text) !important;
+  box-shadow: none !important;
+}
+
+[data-theme='dark'] [class*='-placeholder'] {
+  color: var(--text-soft) !important;
+}
+
+/*
+ * The dropdown itself, which opens over the page and was white too.
+ *
+ * react-select gives the menu `z-index: 1`, which the Ace editor below it wins, so the body
+ * field showed through the options. The menu list inside is transparent by design, so the
+ * opaque ground has to sit on both.
+ */
+[data-theme='dark'] [class*='-menu'] {
+  background: var(--surface-raised, #1e212a) !important;
+  border: 1px solid var(--border-strong);
+  z-index: 20 !important;
+}
+
+[data-theme='dark'] [class*='-menu'] > div {
+  background: var(--surface-raised, #1e212a) !important;
+}
+
+[data-theme='dark'] [class*='-option'] {
+  background: transparent !important;
+  color: var(--text) !important;
+}
+
+[data-theme='dark'] [class*='-option']:hover,
+[data-theme='dark'] [class*='-option'][class*='is-focused'] {
+  background: var(--surface-sunken) !important;
+}
+
+[data-theme='dark'] [class*='-option'][class*='is-selected'] {
+  background: var(--accent) !important;
+  color: #0d1016 !important;
+}
+
+/* Separator and the arrow/clear icons, which were tuned for a white ground. */
+[data-theme='dark'] [class*='-indicatorSeparator'] {
+  background-color: var(--border-strong) !important;
+}
+
+[data-theme='dark'] [class*='-indicatorContainer'] {
+  color: var(--text-soft) !important;
+}

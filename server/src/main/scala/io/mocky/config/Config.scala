@@ -30,6 +30,25 @@ sealed case class MockSettings(
   assert(contentMaxLength > 1000 && contentMaxLength < 10000000)
 }
 
+/**
+  * Limits on recording incoming requests. `maxBodyRead` bounds what is pulled off the wire at all;
+  * `maxBodyStored` bounds what is kept. The read limit exists because nothing else in the request
+  * pipeline caps an incoming body.
+  */
+sealed case class CaptureSettings(
+  maxBodyStored: Int,
+  maxBodyRead: Int,
+  maxHeaders: Int,
+  maxPerMock: Int,
+  retention: FiniteDuration
+) {
+  assert(maxBodyStored > 0 && maxBodyStored <= maxBodyRead)
+  assert(maxBodyRead > 0 && maxBodyRead <= 10000000)
+  assert(maxHeaders > 0 && maxHeaders <= 200)
+  assert(maxPerMock > 0 && maxPerMock <= 10000)
+  assert(retention > Duration.Zero)
+}
+
 sealed case class SecuritySettings(bcryptIterations: Int) {
   assert(bcryptIterations >= 4 && bcryptIterations <= 31)
 }
@@ -48,6 +67,7 @@ sealed case class Settings(
   endpoint: String,
   cors: CorsSettings,
   mock: MockSettings,
+  capture: CaptureSettings,
   security: SecuritySettings,
   throttle: ThrottleSettings,
   sleep: SleepSettings,

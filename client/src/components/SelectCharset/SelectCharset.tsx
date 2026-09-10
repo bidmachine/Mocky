@@ -12,6 +12,7 @@ const customStyles = {
 const SelectCharset = ({ field, form: { setFieldValue }, ...props }: FieldProps & { label: string }) => {
   return (
     <Select
+      inputId={field.name}
       options={charsetOptions}
       styles={customStyles}
       {...field}

@@ -1,0 +1,95 @@
+/*
+ * Collapsible JSON view, used for captured request bodies.
+ *
+ * Rows are laid out as flex lines rather than a pre block so that a highlighted match and the
+ * fold twisty stay on the same baseline as the text.
+ */
+.jsontree {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  line-height: 1.62;
+  overflow: auto;
+  padding: 8px 10px;
+}
+
+.jsontree .jt-row {
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  white-space: pre;
+  border-radius: 2px;
+  padding: 0 3px;
+}
+
+.jsontree .jt-row:hover {
+  background: var(--surface-sunken);
+}
+
+.jsontree .jt-twist {
+  /* The hit area was 12x19; a fold control has to be reachable with a finger */
+  width: 20px;
+  min-height: 20px;
+  text-align: center;
+  flex: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  user-select: none;
+}
+
+.jsontree .jt-leaf {
+  visibility: hidden;
+}
+
+.jsontree .jt-key {
+  color: var(--code-key);
+}
+
+.jsontree .jt-colon {
+  color: var(--text-faint);
+}
+
+.jsontree .jt-brace,
+.jsontree .jt-close {
+  color: var(--text-faint);
+}
+
+.jsontree .jt-close {
+  padding-left: 15px;
+}
+
+.jsontree .jt-val.jt-str {
+  color: var(--code-str);
+}
+
+.jsontree .jt-val.jt-num {
+  color: var(--code-num);
+}
+
+.jsontree .jt-val.jt-bool {
+  color: var(--code-bool);
+}
+
+.jsontree .jt-val.jt-null {
+  color: var(--text-faint);
+}
+
+/* Size of a folded branch, so the shape of a payload reads without opening it */
+.jsontree .jt-count {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+  border-radius: 8px;
+  padding: 0 6px;
+  margin-left: 6px;
+}
+
+.jsontree .jt-kids {
+  padding-left: 15px;
+}
+
+.jsontree mark {
+  background: var(--hit);
+  color: var(--hit-text);
+  border-radius: 1px;
+  padding: 0 1px;
+}

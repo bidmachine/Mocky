@@ -87,6 +87,7 @@ const currentExpiration = (mock: MockStored): string => {
   // ratcheting the deadline forward every time the mock is saved.
   if (remainingDays >= 361) return '1year';
   if (remainingDays >= 31) return '1month';
+  if (remainingDays >= 14) return '2weeks';
   if (remainingDays >= 7) return '1week';
   return '1day';
 };

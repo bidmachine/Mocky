@@ -20,6 +20,10 @@ export const mocksSlice = createSlice({
       if (index !== -1) state.all[index] = action.payload;
       if (state.last?.id === action.payload.id) state.last = action.payload;
     },
+    setCaptureLimit: (state, action: PayloadAction<{ id: string; limit: number }>) => {
+      const mock = state.all.find((m) => m.id === action.payload.id);
+      if (mock) mock.captureLimit = action.payload.limit;
+    },
     remove: (state, action: PayloadAction<string>) => {
       state.all = state.all.filter((mock) => mock.id !== action.payload);
     },
@@ -29,7 +33,7 @@ export const mocksSlice = createSlice({
   },
 });
 
-export const { store, update, remove, clearNew } = mocksSlice.actions;
+export const { store, update, setCaptureLimit, remove, clearNew } = mocksSlice.actions;
 
 export const selectLatestMock = (state: RootState) => state.mocks.last;
 export const selectAllMocks = (state: RootState) => state.mocks.all;

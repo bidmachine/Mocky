@@ -93,7 +93,12 @@ export const parseHeaders = (headers?: string | Record<string, unknown>): [strin
 
   if (typeof parsed !== 'object' || parsed === null) return [];
 
-  return Object.entries(parsed).map(([key, value]) => [key, String(value)]);
+  // An HTTP header value is a string. Anything else came from a malformed record, and coercing
+  // it produced "[object Object]" — which the next save then sent back to the server as the
+  // header's real value, corrupting it for good. Dropped instead.
+  return Object.entries(parsed)
+    .filter(([, value]) => typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
+    .map(([key, value]) => [key, String(value)]);
 };
 
 /**

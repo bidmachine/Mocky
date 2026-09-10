@@ -51,8 +51,10 @@ export default () => (
             <div className="text-block">
               <h5>How many mocks can I store? How long do they last?</h5>
               <p>
-                You can create as many mocks as you want, and they will last forever. There is just one rule: call it at
-                least once every year to keep it alive!
+                You can create as many mocks as you want, and a mock created here lasts forever unless you pick an
+                expiry date in the designer. Once a mock does expire its URL returns 404 and it is deleted, together
+                with any requests it captured. Mocks created straight from the API without naming an expiry are kept
+                for two weeks, so scripts don't leave anything behind.
               </p>
             </div>
             <div className="text-block">

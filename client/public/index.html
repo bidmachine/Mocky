@@ -42,6 +42,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap" rel="stylesheet" />
   </head>
   <body>
+    <script>
+      // Stamp the theme before the app renders, or the page flashes light on every load
+      (function () {
+        try {
+          var stored = localStorage.getItem('mocky-theme');
+          document.documentElement.setAttribute('data-theme', stored === 'light' ? 'light' : 'dark');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
   </body>

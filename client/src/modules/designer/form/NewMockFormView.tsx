@@ -13,7 +13,20 @@ import CleanConfirmationOnSubmit from './CleanConfirmationOnSubmit';
 import { NewMockFormValues } from './types';
 
 const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
-  const { touched, errors, isSubmitting, submitCount, isValid } = props;
+  const { touched, errors, isSubmitting, submitCount, isValid, values } = props;
+  const errorAlert = React.useRef<HTMLDivElement | null>(null);
+
+  /*
+   * An empty body is legitimate — a 204 has none — so this warns rather than blocks. It used to
+   * be silent, and the field showed a JSON sample as its placeholder, so a mock serving nothing
+   * looked like a mock serving that sample.
+   */
+  const bodyIsEmpty = (values.body ?? '').trim() === '';
+
+  // A failed submit has to reach someone who is not looking at the bottom of a long form.
+  React.useEffect(() => {
+    if (submitCount > 0 && !isValid) errorAlert.current?.focus();
+  }, [submitCount, isValid]);
 
   return (
     <section className="space--xxs bg--secondary">
@@ -25,106 +38,106 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
                 <CleanConfirmationOnSubmit />
 
                 <div className="row">
-                  <div className="col-md-6">
-                    <Label>HTTP Status</Label>
+                  <div className="col-md-12">
+                    <Label htmlFor="name" required>Mock name</Label>
                     <RequiredTag />
-                    <FastField type="text" name="status" component={SelectHttpStatusCode} />
-                    <ErrorFeedback name="status" />
-                    <Help>The HTTP Code of the HTTP response you'll receive.</Help>
+                    <FastField
+                      id="name"
+                      type="string"
+                      name="name"
+                      aria-invalid={!!errors.name && !!touched.name}
+                      aria-describedby="name-help"
+                      className={`form-control ${!!errors.name && !!touched.name ? 'input--error' : ''}`}
+                    />
+                    <ErrorFeedback name="name" />
+                    <Help id="name-help">A name to find this mock in your list later.</Help>
                   </div>
                 </div>
 
+                {/*
+                  * Status, content type and charset describe one thing between them — what the
+                  * response is — so they sit on one line. Status was alone in a half-width row,
+                  * which left the space beside it empty and split the group across two rows.
+                  */}
                 <div className="row mt-3">
-                  <div className="col-md-6">
-                    <Label>Response Content Type</Label>
+                  <div className="col-lg-3 col-md-6">
+                    <Label htmlFor="status" required>HTTP Status</Label>
+                    <RequiredTag />
+                    <FastField type="text" name="status" component={SelectHttpStatusCode} />
+                    <ErrorFeedback name="status" />
+                    <Help id="status-help">The HTTP Code of the HTTP response you'll receive.</Help>
+                  </div>
+                  <div className="col-lg-6 col-md-6">
+                    <Label htmlFor="contentType" required>Response Content Type</Label>
                     <RequiredTag />
 
                     <FastField type="text" name="contentType" component={SelectContentType} />
                     <ErrorFeedback name="contentType" />
-                    <Help>The Content-Type header that will be sent with the response.</Help>
+                    <Help id="contentType-help">The Content-Type header that will be sent with the response.</Help>
                   </div>
-                  <div className="col-md-6">
-                    <Label>Charset</Label>
+                  <div className="col-lg-3 col-md-6">
+                    <Label htmlFor="charset" required>Charset</Label>
                     <RequiredTag />
 
                     <FastField type="text" name="charset" component={SelectCharset} />
                     <ErrorFeedback name="charset" />
-                    <Help>The Charset used to encode/decode your payload.</Help>
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="col-md-12">
-                    <Label>HTTP Headers</Label>
-                    <OptionalTag />
-
-                    <FastField type="text" name="headers" component={TextareaHeaders} />
-                    <ErrorFeedback name="headers" />
-                    <Help>Customize the HTTP headers sent in the response. Define the headers as a JSON object.</Help>
+                    <Help id="charset-help">The Charset used to encode/decode your payload.</Help>
                   </div>
                 </div>
                 <div className="row mt-3">
                   <div className="col-md-12">
-                    <Label>HTTP Response Body</Label>
+                    <Label htmlFor="headers">HTTP Headers</Label>
+                    <OptionalTag />
+
+                    <FastField type="text" name="headers" component={TextareaHeaders} />
+                    <ErrorFeedback name="headers" />
+                    <Help id="headers-help">Customize the HTTP headers sent in the response. Define the headers as a JSON object.</Help>
+                  </div>
+                </div>
+                <div className="row mt-3">
+                  <div className="col-md-12">
+                    <Label htmlFor="body">HTTP Response Body</Label>
                     <OptionalTag />
 
                     <FastField type="text" name="body" component={TextareaCodeEditor} />
                     <ErrorFeedback name="body" />
                   </div>
                 </div>
-                <hr className="mt-4"></hr>
-                <h5 className="mb-2">
-                  Options to manage your mock after its creation
-                  <OptionalTag />
-                </h5>
-                <div className="row">
-                  <div className="col-md-6">
-                    <Label>Secret token</Label>
-
-                    <FastField
-                      type="text"
-                      name="secret"
-                      className={`form-control ${!!errors.secret && !!touched.secret ? 'input--error' : ''}`}
-                    />
-                    <ErrorFeedback name="secret" />
-                    <Help>
-                      Required to update/delete your mock.
-                      <br />
-                      If blank, a random secret will be generated.
-                    </Help>
-                  </div>
-
-                  <div className="col-md-6 mb-5">
-                    <Label>Mock identifier</Label>
-                    <FastField
-                      type="string"
-                      name="name"
-                      className={`form-control ${!!errors.name && !!touched.name ? 'input--error' : ''}`}
-                    />
-                    <ErrorFeedback name="name" />
-                    <Help>
-                      Just a name to identify this mock in your management console later.
-                      <br />
-                      &nbsp;
+                <div className="row mt-3">
+                  <div className="col-md-6 mb-4">
+                    <Label htmlFor="expiration">Expiration</Label>
+                    <div className="expiration-select input-select">
+                      <SelectExpirationTime name="expiration" />
+                    </div>
+                    <Help id="expiration-help">
+                      When the mock is deleted, along with anything it captured. Pick <em>Never</em> for one you
+                      intend to keep.
                     </Help>
                   </div>
                 </div>
                 {submitCount > 0 && !isValid && (
-                  <div className="alert bg--error">
+                  <div className="alert bg--error" role="alert" ref={errorAlert} tabIndex={-1}>
                     <div className="alert__body">
                       <span>Please fix the errors before saving your mock!</span>
                     </div>
                   </div>
                 )}
+
+                {bodyIsEmpty && (
+                  <div className="alert bg--warning" role="status">
+                    <div className="alert__body">
+                      <span>
+                        The response body is empty. Your mock will return an empty response unless you type or paste
+                        a body.
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div className="row">
-                  <div className="col-md-8 ">
+                  <div className="col-md-12">
                     <button type="submit" className="btn btn--primary type--uppercase" disabled={isSubmitting}>
                       Generate my HTTP Response
                     </button>
-                  </div>
-                  <div className="col-md-4 ">
-                    <div className="expiration-select input-select">
-                      <SelectExpirationTime name="expiration" />
-                    </div>
                   </div>
                 </div>
               </Form>
@@ -136,26 +149,47 @@ const NewMockFormView = (props: FormikProps<NewMockFormValues>) => {
   );
 };
 
+/*
+ * "Required" is said in the label rather than only in a floated badge: the badge is decoration,
+ * and a field's obligation has to survive being read out of order by a screen reader.
+ */
 const RequiredTag = () => (
   <>
-    &nbsp;<span className="badge badge-info float-right">REQUIRED</span>
+    &nbsp;<span className="badge badge-info float-right field-tag" aria-hidden="true">REQUIRED</span>
   </>
 );
 
 const OptionalTag = () => (
   <>
-    &nbsp;<span className="badge badge-dark type--fade float-right">OPTIONAL</span>
+    &nbsp;<span className="badge badge-dark type--fade float-right field-tag" aria-hidden="true">OPTIONAL</span>
   </>
 );
 
-const Label = (props: React.PropsWithChildren<any>) => <span className="color--dark">{props.children}</span>;
-
-const ErrorFeedback = (props: { name: string }) => (
-  <ErrorMessage component="span" className="form-text color--error" name={props.name} />
+/**
+ * A real `<label htmlFor>`, so clicking the name focuses the field and a screen reader announces
+ * it. These used to be `<span>`s, which left every control on the page unnamed.
+ */
+const Label = (props: React.PropsWithChildren<{ htmlFor: string; required?: boolean }>) => (
+  <label className="color--dark field-label" htmlFor={props.htmlFor}>
+    {props.children}
+    {props.required && <span className="sr-only"> (required)</span>}
+  </label>
 );
 
-const Help = (props: React.PropsWithChildren<any>) => (
-  <small className="form-text color--primary">{props.children}</small>
+const ErrorFeedback = (props: { name: string }) => (
+  <ErrorMessage name={props.name}>
+    {(message) => (
+      <span className="form-text color--error" role="alert" id={`${props.name}-error`}>
+        {message}
+      </span>
+    )}
+  </ErrorMessage>
+);
+
+const Help = (props: React.PropsWithChildren<{ id?: string }>) => (
+  <small className="form-text color--primary" id={props.id}>
+    {props.children}
+  </small>
 );
 
 export default NewMockFormView;

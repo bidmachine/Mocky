@@ -129,4 +129,17 @@ describe('headersForApi', () => {
     expect(headersForApi('')).toBeUndefined();
     expect(headersForApi('{}')).toBeUndefined();
   });
+
+  it('drops a header whose value is not a string rather than sending "[object Object]"', () => {
+    // Coercing it wrote the literal string back to the server on the next save, replacing the
+    // header's real value for good.
+    const headers = { 'X-Good': 'kept', 'X-Bad': { nested: true } } as Record<string, unknown>;
+
+    expect(parseHeaders(headers)).toEqual([['X-Good', 'kept']]);
+    expect(headersForApi(headers)).toEqual({ 'X-Good': 'kept' });
+  });
+
+  it('keeps a numeric or boolean header value, which has a sane string form', () => {
+    expect(headersForApi({ 'X-Count': 3, 'X-On': true })).toEqual({ 'X-Count': '3', 'X-On': 'true' });
+  });
 });

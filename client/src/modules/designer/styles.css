@@ -19,3 +19,46 @@
 .btn-cta-pub svg {
   vertical-align: -0.325em;
 }
+
+/*
+ * The secret delete link.
+ *
+ * It was rendered in `type--fade` beside the mock URL, which made the one credential that cannot
+ * be recovered the quietest thing on the page, and said nothing about keeping it.
+ */
+.secret-link {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-sunken);
+  text-align: left;
+}
+
+.secret-link > span {
+  font-weight: 600;
+}
+
+.secret-warning {
+  margin: 0.75rem 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--warning);
+}
+
+/* The copy icons were bare glyphs with no name and no hit area. */
+.copy-button {
+  background: none;
+  border: 0;
+  padding: 6px;
+  margin-left: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  cursor: pointer;
+  color: inherit;
+  line-height: 1;
+}
+
+.copy-button:hover {
+  color: var(--accent);
+}

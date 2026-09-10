@@ -19,6 +19,7 @@ import MockyAPI from '../../../services/MockyAPI/MockyAPI';
 import GA from '../../../services/Analytics/GA';
 import { absoluteMockLink } from '../../../services/url';
 import CodeEditor from '../../../components/CodeEditor/CodeEditor';
+import CapturedRequests from './CapturedRequests';
 import { formatBody, humanSize, isValidForContentType, parseHeaders } from '../../../services/format';
 
 const MockRow = (props: { mock: MockStored }) => {
@@ -29,6 +30,7 @@ const MockRow = (props: { mock: MockStored }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState<'response' | 'requests'>('response');
 
   // The row is always editable once expanded, so the drafts start from what the mock holds.
   const [draft, setDraft] = useState(() => formatBody(mock.content ?? '', mock.contentType));
@@ -160,49 +162,70 @@ const MockRow = (props: { mock: MockStored }) => {
               </div>
             )}
 
-            <label className="mock-field">
-              <span className="mock-field-label">Name</span>
-              <input
-                type="text"
-                className="form-control"
-                value={nameDraft}
-                disabled={saving}
-                maxLength={100}
-                placeholder="A name to identify this mock"
-                onChange={(event) => setNameDraft(event.target.value)}
+            <div className="mock-tabs">
+              <button
+                type="button"
+                className={`mock-tab ${tab === 'response' ? 'on' : ''}`}
+                onClick={() => setTab('response')}
+              >
+                Response
+              </button>
+              <button
+                type="button"
+                className={`mock-tab ${tab === 'requests' ? 'on' : ''}`}
+                onClick={() => setTab('requests')}
+              >
+                Requests
+              </button>
+            </div>
+
+            {tab === 'requests' && <CapturedRequests mock={mock} />}
+
+            <div hidden={tab !== 'response'}>
+              <label className="mock-field">
+                <span className="mock-field-label">Name</span>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={nameDraft}
+                  disabled={saving}
+                  maxLength={100}
+                  placeholder="A name to identify this mock"
+                  onChange={(event) => setNameDraft(event.target.value)}
+                />
+              </label>
+
+              <span className="mock-field-label">Response body</span>
+
+              <CodeEditor
+                name={`edit-${mock.id}`}
+                value={draft}
+                contentType={mock.contentType}
+                readOnly={saving}
+                minLines={6}
+                maxLines={24}
+                onChange={setDraft}
               />
-            </label>
 
-            <span className="mock-field-label">Response body</span>
+              {invalidJson && (
+                <div className="mock-warning">
+                  This body is not valid JSON, but the mock is served as <code>{mock.contentType}</code>.
+                </div>
+              )}
 
-            <CodeEditor
-              name={`edit-${mock.id}`}
-              value={draft}
-              contentType={mock.contentType}
-              readOnly={saving}
-              minLines={6}
-              maxLines={24}
-              onChange={setDraft}
-            />
+              {error && <div className="mock-error">{error}</div>}
 
-            {invalidJson && (
-              <div className="mock-warning">
-                This body is not valid JSON, but the mock is served as <code>{mock.contentType}</code>.
+              <div className="mock-editor-actions">
+                <button type="button" className="btn btn--primary" onClick={save} disabled={!isDirty || saving}>
+                  {saving ? 'Saving...' : 'Save'}
+                </button>
+                <button type="button" className="btn" onClick={reset} disabled={!isDirty || saving}>
+                  Reset
+                </button>
+                <small className="type--fade">
+                  {isDirty ? 'Unsaved changes. The mock URL does not change.' : 'The mock URL does not change.'}
+                </small>
               </div>
-            )}
-
-            {error && <div className="mock-error">{error}</div>}
-
-            <div className="mock-editor-actions">
-              <button type="button" className="btn btn--primary" onClick={save} disabled={!isDirty || saving}>
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-              <button type="button" className="btn" onClick={reset} disabled={!isDirty || saving}>
-                Reset
-              </button>
-              <small className="type--fade">
-                {isDirty ? 'Unsaved changes. The mock URL does not change.' : 'The mock URL does not change.'}
-              </small>
             </div>
           </td>
         </tr>

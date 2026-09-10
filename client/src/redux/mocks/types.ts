@@ -12,6 +12,8 @@ export interface MockStored {
   headers?: string | Record<string, unknown>;
   deleteLink: string;
   createdAt: Date;
+  // How many requests the server keeps for this mock; 0, the default, means capture is off
+  captureLimit?: number;
   expireAt?: Date;
 }
 

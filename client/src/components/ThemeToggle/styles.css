@@ -1,0 +1,36 @@
+/*
+ * Theme switch in the navigation bar.
+ *
+ * The theme gives buttons in this bar their own padding and line-height, which made this one
+ * 55px tall next to 38px siblings and left it sitting proud of the row. The sizing below is
+ * explicit so it matches the buttons beside it.
+ */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0 0 0 6px;
+  vertical-align: middle;
+  background: none;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  font-size: 16px;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.theme-toggle:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

@@ -8,20 +8,14 @@ import { Redirect } from 'react-router-dom';
 import { faCopy as iconCopy } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { selectLatestMock, selectCountMocks } from '../../redux/mocks/slice';
+import { selectLatestMock } from '../../redux/mocks/slice';
 import DesignerTitle from './components/DesignerTitle';
 import NewMockFeatures from './components/NewMockFeatures';
-import Pub from './components/Pub';
-import SponsoConfirmation from '../sponso-abstract/SponsoConfirmation';
 import { absoluteMockLink } from '../../services/url';
 
 const NewMockConfirmation = () => {
   const [copied, setCopied] = useState(0);
   const mock = useSelector(selectLatestMock);
-  const nbMocks = useSelector(selectCountMocks);
-
-  const isPromotingActivated = process.env.REACT_APP_SHOW_PROMOTING_PANEL === 'true';
-  const isSponsoringActivated = process.env.REACT_APP_SHOW_SPONSORING === 'true';
 
   if (!mock) {
     return <Redirect to="/design" />;
@@ -30,12 +24,6 @@ const NewMockConfirmation = () => {
   return (
     <>
       <DesignerTitle />
-
-      {/* Display self-advertising panel only if promoting is activated and sponsoring is not activated */}
-      {!isSponsoringActivated && isPromotingActivated && (nbMocks === 2 || nbMocks % 4 === 0) && <Pub />}
-
-      {/* Display sponsoring panel if sponsoring is enabled */}
-      {isSponsoringActivated && (nbMocks === 2 || nbMocks % 4 === 0) && <SponsoConfirmation />}
 
       <section className="space--xxs bg--primary">
         <div className="container">
@@ -47,7 +35,9 @@ const NewMockConfirmation = () => {
                 <h4 className="mb-2">
                   Mock URL
                   <CopyToClipboard text={absoluteMockLink(mock.link)} onCopy={() => setCopied(1)}>
-                    <FontAwesomeIcon icon={iconCopy} className="iconMocky--main" />
+                    <button type="button" className="copy-button" aria-label="Copy the mock URL">
+                      <FontAwesomeIcon icon={iconCopy} className="iconMocky--main" />
+                    </button>
                   </CopyToClipboard>
                 </h4>
 
@@ -58,16 +48,25 @@ const NewMockConfirmation = () => {
                 </pre>
               </div>
 
-              <span className="type--fade" data-tooltip="This link allow you to delete your mock whenever you want">
-                Secret delete link
-                <CopyToClipboard text={mock.deleteLink}>
-                  <FontAwesomeIcon icon={iconCopy} className="iconMocky--sec" />
-                </CopyToClipboard>
-              </span>
+              <div className="secret-link">
+                <span data-tooltip="This link allow you to delete your mock whenever you want">
+                  Secret delete link
+                  <CopyToClipboard text={mock.deleteLink} onCopy={() => setCopied(2)}>
+                    <button type="button" className="copy-button" aria-label="Copy the secret delete link">
+                      <FontAwesomeIcon icon={iconCopy} className="iconMocky--sec" />
+                    </button>
+                  </CopyToClipboard>
+                </span>
 
-              <pre className="unpad unmarg--bottom type--fade user-select-all">
-                <small>{mock.deleteLink}</small>
-              </pre>
+                <pre className="unpad unmarg--bottom user-select-all">
+                  <small>{mock.deleteLink}</small>
+                </pre>
+
+                <p className="secret-warning" role="note">
+                  Save this link now. It is the only way to edit or delete this mock, it is not shown again, and it
+                  cannot be recovered &mdash; it is kept in this browser's list, which a cleared cache will lose.
+                </p>
+              </div>
             </div>
           </div>
         </div>

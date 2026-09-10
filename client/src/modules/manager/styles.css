@@ -11,17 +11,17 @@ pre.resume {
 }
 
 a.icon-delete {
-  color: #dc3545;
+  color: var(--delete);
 }
 
 span.icon-edit {
-  color: #6c757d;
+  color: var(--text-faint);
   opacity: 0.5;
 }
 
 button.btn--confirmation {
-  background: #dc3545 !important;
-  color: #fff !important;
+  background: var(--delete) !important;
+  color: var(--surface) !important;
 }
 
 /*
@@ -68,16 +68,16 @@ td.mock-actions a {
 }
 
 button.btn-expand {
-  color: #6c757d;
+  color: var(--text-faint);
 }
 
 button.btn-icon.icon-edit {
-  color: #6c757d;
+  color: var(--text-faint);
   opacity: 1;
 }
 
 tr.mock-details > td {
-  background: #f8f9fa;
+  background: var(--surface-raised);
   padding: 14px 18px;
 }
 
@@ -93,7 +93,7 @@ div.mock-headers {
   font-family: 'Source Code Pro', monospace;
   font-size: 11px;
   margin-bottom: 8px;
-  color: #495057;
+  color: var(--text-soft);
 }
 
 div.mock-headers .header-key {
@@ -102,7 +102,7 @@ div.mock-headers .header-key {
 
 div.mock-empty {
   font-size: 12px;
-  color: #6c757d;
+  color: var(--text-faint);
   font-style: italic;
   padding: 6px 0;
 }
@@ -119,7 +119,7 @@ span.mock-field-label {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6c757d;
+  color: var(--text-faint);
   margin-bottom: 3px;
 }
 
@@ -152,11 +152,632 @@ div.mock-error {
 }
 
 div.mock-warning {
-  background: #fff3cd;
-  color: #856404;
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 div.mock-error {
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/*
+ * Focus rings. The site theme sets `button:focus { outline: none !important }`, which leaves
+ * 13 of the 14 tab stops in this panel invisible to a keyboard user.
+ */
+.captures button:focus-visible,
+.captures input:focus-visible,
+.captures [role='button']:focus-visible,
+.captures [role='treeitem']:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px;
+}
+
+/*
+ * Response / Requests tabs inside an expanded row
+ */
+div.mock-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+button.mock-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+
+button.mock-tab.on {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/*
+ * Captured requests: the list and the payload sit side by side, because the common task is
+ * stepping through calls one after another rather than opening a single one.
+ */
+div.captures {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+div.captures-bar {
+  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+/*
+ * A switch built from a button rather than a checkbox: the theme resets checkboxes to
+ * `appearance: none` and stretches them to fill their row, which leaves nothing visible to click.
+ */
+button.capture-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  cursor: pointer;
+  flex: none;
+}
+
+span.capture-track {
+  position: relative;
+  width: 34px;
+  height: 19px;
+  border-radius: 10px;
+  background: var(--border-strong);
+  transition: background 0.16s ease;
+  flex: none;
+}
+
+button.capture-switch.on span.capture-track {
+  background: var(--accent);
+}
+
+span.capture-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: transform 0.16s ease;
+}
+
+button.capture-switch.on span.capture-knob {
+  transform: translateX(15px);
+}
+
+button.capture-switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+span.capture-meta {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+span.capture-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+span.capture-actions .btn {
+  margin: 0;
+  padding: 4px 14px;
+  font-size: 12px;
+}
+
+div.captures-empty {
+  text-align: center;
+  padding: 26px 16px;
+  color: var(--text-faint);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+div.captures-hint {
+  font-size: 13px;
+}
+
+code.captures-cmd {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  background: var(--surface-sunken);
+  padding: 6px 11px;
+  border-radius: 3px;
+  color: var(--text-soft);
+  word-break: break-all;
+}
+
+div.captures-split {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+div.captures-list {
+  /* `flex-shrink: 0`: a wide payload used to squeeze this to 3px and take the pane with it */
+  flex: 0 0 clamp(280px, 26%, 420px);
+  max-height: 520px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+button.capture-row {
+  min-height: 44px;
+  color: var(--text);
+  display: grid;
+  grid-template-columns: 52px 1fr auto auto auto;
+  gap: 8px;
+  align-items: center;
+  text-align: left;
+  padding: 7px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+}
+
+button.capture-row:hover {
+  background: var(--surface-raised);
+}
+
+button.capture-row.on {
+  border-color: var(--accent);
+  /* A 1px border was doing all the work at 1.10:1 against the unselected row */
+  background: var(--surface-selected);
+  color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+span.capture-method {
+  font-weight: 600;
+}
+
+span.capture-method.m-GET { color: var(--method-get); }
+span.capture-method.m-POST { color: var(--method-post); }
+span.capture-method.m-PUT { color: var(--method-put); }
+span.capture-method.m-DELETE { color: var(--method-delete); }
+
+span.capture-path {
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+span.capture-when {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Per-row delete, revealed on hover so it does not compete with the request itself */
+span.capture-del {
+  min-width: 26px;
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 3px;
+  border-radius: 2px;
+  opacity: 0;
+  cursor: pointer;
+}
+
+button.capture-row:hover span.capture-del,
+button.capture-row.on span.capture-del,
+span.capture-del:focus-visible {
+  opacity: 1;
+}
+
+span.capture-del:hover {
+  color: var(--delete);
+  background: var(--danger-bg);
+}
+
+span.capture-del:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Destructive confirmation, so the count is visible on the button that does it */
+.btn--danger,
+.btn--danger:hover {
+  background: var(--delete) !important;
+  border-color: var(--delete) !important;
+  color: #fff !important;
+}
+
+span.capture-size {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Match position, next to the box it belongs to */
+span.capture-matches {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* Headers fold away: they were taking a third of the pane for mostly constant noise */
+details.capture-headers-box {
+  border-bottom: 1px solid var(--border);
+}
+
+details.capture-headers-box > summary {
+  cursor: pointer;
+  padding: 8px 11px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  user-select: none;
+}
+
+details.capture-headers-box > summary:hover {
+  color: var(--text);
+}
+
+details.capture-headers-box pre.capture-headers {
+  border-bottom: none;
+  padding-top: 0;
+}
+
+span.capture-trunc {
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  font-family: 'Source Code Pro', monospace;
+}
+
+div.captures-detail {
+  /* `min-width: 0` alone is not enough once a child has intrinsic width: the basis has to be
+     zero as well, or a 65 KB unbroken line sets the pane's size */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  max-height: 520px;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+div.capture-when-bar {
+  /* Sticky: the detail pane scrolls, and on a 625-row payload the controls below were
+     11000px above the viewport — exactly when they are needed.
+     The background is not optional here: without it the payload scrolls through the bar. */
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface);
+  display: flex;
+  gap: 8px 16px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  color: var(--text);
+}
+
+pre.capture-headers {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 0;
+  padding: 10px 11px;
+  border-bottom: 1px solid var(--border);
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-soft);
+}
+
+div.capture-tools {
+  position: sticky;
+  top: 38px;
+  z-index: 3;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+  flex-wrap: wrap;
+}
+
+/*
+ * Tree / Raw as one control rather than two buttons: the two views are exclusive, and a pair of
+ * buttons where one happens to be filled reads as two separate actions.
+ */
+div.view-switch {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--surface-sunken);
+}
+
+span.view-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: calc(100% - 4px);
+  border-radius: 3px;
+  background: var(--accent);
+  transition: transform 0.16s ease;
+}
+
+div.view-switch.raw span.view-switch-thumb {
+  transform: translateX(100%);
+}
+
+button.view-switch-option {
+  position: relative;
+  z-index: 1;
+  min-width: 54px;
+  padding: 4px 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+
+button.view-switch-option[aria-checked='true'] {
+  color: var(--accent-text);
+}
+
+button.view-switch-option:not([aria-checked='true']):hover:not(:disabled) {
+  color: var(--text);
+}
+
+/* No tree to show: the option is unavailable, and the control says so rather than
+   pretending the choice exists */
+button.view-switch-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+div.view-switch.disabled {
+  opacity: 0.85;
+}
+
+div.capture-tools .btn {
+  margin: 0;
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
+input.capture-find {
+  flex: 1 1 140px;
+  min-width: 110px;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  padding: 4px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+}
+
+/* Copy actions sit at the end of the toolbar, away from the view and search controls */
+span.capture-copy {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+span.capture-copy .btn {
+  margin: 0;
+  padding: 3px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  /* Fixed width: "Copied" is 20px narrower than "Copy JSON" and dragged the next button
+     under the pointer mid-click */
+  min-width: 92px;
+  text-align: center;
+}
+
+/* The selected node's path gets its own line: it can be long, and it should not push the
+   toolbar controls around as the reader clicks through a tree */
+/* The slot is always present, so selecting a node does not shift the tree under the cursor */
+div.capture-path-bar {
+  position: sticky;
+  top: 76px;
+  z-index: 2;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-sunken);
+}
+
+button.capture-path-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--path);
+  text-align: left;
+  word-break: break-all;
+}
+
+span.capture-path-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0 5px;
+  flex: none;
+}
+
+button.capture-path-copy:hover span.capture-path-hint {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+span.capture-path-empty {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* Notice that the view is clipped, with the way to see the rest */
+div.capture-clip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  margin: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface-sunken);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+div.capture-clip .btn {
+  margin: 0;
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
+pre.capture-raw {
+  /* Without an explicit cap, an unbroken run of characters sets the width of everything above */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 10px 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 620px) {
+  /* The mocks table keeps fixed column widths that add up to more than a phone viewport,
+     so the whole page scrolls sideways. The response badges are the column to drop. */
+  table.table--mocks {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  table.table--mocks th:nth-child(3),
+  table.table--mocks td.mock-badges {
+    display: none;
+  }
+
+  table.table--mocks th:last-child,
+  table.table--mocks td.mock-actions {
+    width: auto;
+  }
+
+  td.mock-name {
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 560px) {
+  /* The bar was 91px wider than a 375px viewport, and the meta line collapsed into a
+     26px-wide column five lines tall */
+  div.captures-bar {
+    gap: 8px;
+  }
+
+  span.capture-meta {
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  span.capture-actions {
+    margin-left: 0;
+  }
+
+  button.capture-row {
+    grid-template-columns: 46px 1fr auto;
+  }
+
+  span.capture-size {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  div.captures-split {
+    flex-direction: column;
+  }
+
+  div.captures-list {
+    flex: none;
+    max-height: 220px;
+  }
+}
+
+/* Shown when a delete failed and the mock is still on the server. */
+.delete-failed {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  text-align: left;
 }

@@ -13,3 +13,94 @@ span.form-text {
 .table td {
   vertical-align: middle;
 }
+
+/*
+ * One size for the field names, one for the help text.
+ *
+ * The form mixed 12 / 13.72 / 14 / 16px across seven controls, with heights of 34 / 38 / 39 /
+ * 45px — Charset sitting 6px taller than the Content Type beside it in the same row.
+ */
+.field-label {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  cursor: pointer;
+}
+
+.field-tag {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+
+small.form-text,
+span.form-text {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+/* Give every control in the form the same height and type size. */
+.boxed .form-control,
+.expiration-select select {
+  min-height: 40px;
+  font-size: 14px;
+}
+
+.expiration-select select {
+  font-size: 14px;
+}
+
+/*
+ * react-select builds its control from divs and sizes it to 45px, 5px taller than the plain
+ * inputs beside it in the same row.
+ */
+.input-select [class*='-control'],
+.boxed [class*='-control'] {
+  min-height: 40px;
+  height: 40px;
+}
+
+.boxed [class*='-control'] > div:first-child {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/*
+ * The submit row: a 36px-tall primary action is below the 44px touch target floor, and it is
+ * the one control on the page that has to be easy to hit.
+ */
+.boxed button[type='submit'] {
+  min-height: 44px;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
+/* The empty-body notice sits between the form and its submit button. */
+.alert.bg--warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+
+/* On a touch screen the form controls take the full 44px target. */
+@media (max-width: 767px) {
+  .boxed .form-control,
+  .expiration-select select,
+  .boxed [class*='-control'] {
+    min-height: 44px;
+    height: 44px;
+  }
+}
+
+/*
+ * The three response fields share a row, and their help lines wrap to different depths — one
+ * line under Content Type, two under Status and Charset — which left a ragged edge below the
+ * row. Reserving two lines keeps the block that follows on a straight line.
+ */
+@media (min-width: 992px) {
+  .row.mt-3 > [class*='col-lg-3'] .form-text,
+  .row.mt-3 > [class*='col-lg-6'] .form-text {
+    min-height: 36px;
+  }
+}
