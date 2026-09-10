@@ -10,8 +10,8 @@ const STORAGE_KEY = 'mocky-theme';
  * Light/dark switch for the whole site.
  *
  * The choice is stamped on the document element, which is what every dark rule keys off, and
- * remembered per browser. With no stored choice the operating system preference is followed, so
- * someone who runs a dark desktop gets a dark page without being asked.
+ * remembered per browser. Dark is the default: this is a tool for reading payloads and logs, and
+ * that is what it is used against all day.
  */
 const ThemeToggle = () => {
   const [theme, setTheme] = useState<Theme>(initialTheme);
@@ -45,14 +45,10 @@ const initialTheme = (): Theme => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'dark' || stored === 'light') return stored;
   } catch (e) {
-    // Fall through to the system preference
+    // A browser with storage disabled still gets the default
   }
 
-  const prefersDark = typeof window.matchMedia === 'function'
-    ? window.matchMedia('(prefers-color-scheme: dark)').matches
-    : false;
-
-  return prefersDark ? 'dark' : 'light';
+  return 'dark';
 };
 
 export default ThemeToggle;

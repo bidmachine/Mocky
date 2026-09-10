@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 
 import JsonTree from '../../../components/JsonTree/JsonTree';
@@ -11,12 +11,17 @@ import { humanSize } from '../../../services/format';
 /** What a mock keeps once capture is switched on. */
 const DEFAULT_LIMIT = 100;
 
+/** How often an open tab re-reads the log while capture is on. */
+const POLL_MS = 3000;
+
 const CapturedRequests = (props: { mock: MockStored }) => {
   const { mock } = props;
   const dispatch = useDispatch();
 
   const [items, setItems] = useState<CapturedRequest[]>([]);
   const [selected, setSelected] = useState(0);
+  const selectedRef = useRef(0);
+  selectedRef.current = selected;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState('');
@@ -25,28 +30,72 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
   const enabled = (mock.captureLimit ?? 0) > 0;
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(undefined);
+  const load = useCallback(
+    async (options: { quiet?: boolean } = {}) => {
+      if (!options.quiet) setLoading(true);
+      setError(undefined);
 
-    const page = await MockyAPI.captures(mock);
+      const page = await MockyAPI.captures(mock);
 
-    setLoading(false);
+      if (!options.quiet) setLoading(false);
 
-    if (page === undefined) {
-      setError('Could not read the captured requests. The mock may no longer exist on the server, or the API is unreachable.');
-      return;
-    }
+      if (page === undefined) {
+        setError(
+          'Could not read the captured requests. The mock may no longer exist on the server, or the API is unreachable.'
+        );
+        return;
+      }
 
-    setItems(page.items);
-    setSelected(0);
-  }, [mock]);
+      setItems((previous) => {
+        // Keep whatever the reader is looking at pinned when a poll brings newer requests in
+        if (!options.quiet) {
+          setSelected(0);
+        } else if (previous[selectedRef.current]) {
+          const stillThere = page.items.findIndex(
+            (item) => item.receivedAt === previous[selectedRef.current].receivedAt
+          );
+          setSelected(stillThere === -1 ? 0 : stillThere);
+        }
+
+        return page.items;
+      });
+    },
+    [mock]
+  );
 
   // The manager has never read from the server before, so this is the one place that fetches.
   // The log is loaded even when capture is off: earlier requests are still worth reading.
   useEffect(() => {
     load();
   }, [load]);
+
+  /**
+   * While capture is on, new requests appear on their own rather than behind a Refresh press:
+   * the point of watching a log is seeing calls land as a test run makes them.
+   *
+   * A poll is enough here — the server has no push channel, and one small read every few seconds
+   * costs less than the streaming setup it would take to avoid it.
+   */
+  useEffect(() => {
+    if (!enabled) return undefined;
+
+    const timer = window.setInterval(() => {
+      if (!document.hidden) load({ quiet: true });
+    }, POLL_MS);
+
+    // A hidden tab is not polled — there is no one reading it — so catch up on return rather
+    // than leaving the reader looking at a list that stopped where they left it.
+    const onVisible = () => {
+      if (!document.hidden) load({ quiet: true });
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [enabled, load]);
 
   const toggle = async () => {
     const limit = enabled ? 0 : DEFAULT_LIMIT;
@@ -98,7 +147,7 @@ const CapturedRequests = (props: { mock: MockStored }) => {
 
         {(enabled || items.length > 0) && (
           <span className="capture-actions">
-            <button type="button" className="btn btn--sm" onClick={load} disabled={loading}>
+            <button type="button" className="btn btn--sm" onClick={() => load()} disabled={loading}>
               {loading ? 'Loading…' : 'Refresh'}
             </button>
             <button type="button" className="btn btn--sm" onClick={clear} disabled={items.length === 0}>

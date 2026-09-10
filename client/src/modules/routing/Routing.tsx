@@ -6,7 +6,6 @@ import ErrorBoundary from '../../components/ErrorBoundary/ErrorBoundary';
 import Loader from '../../components/Loader/Loader';
 import ScrollToTopOnNavigationChange from '../../components/ScrollToTopOnNavigationChange/ScrollToTopOnNavigationChange';
 import TrackPageView from '../../components/TrackPageView/TrackPageView';
-import About from '../../modules/about/About';
 import Designer from '../../modules/designer/Designer';
 import Faq from '../../modules/faq/Faq';
 import Home from '../../modules/home/Home';
@@ -42,7 +41,6 @@ const Routing = () => (
                 <Route path="/manage/delete/done" component={DeleteSuccessful} />
                 <Route path="/manage/delete/:id/:secret" component={DeletionApproval} />
                 <Route path="/manage" component={Manager} />
-                <Route path="/about" component={About} />
                 <Route path="/faq" component={Faq} />
                 <Route path="/policies/cookies" component={CookiePolicy} />
                 <Route path="*" component={Page404} />
