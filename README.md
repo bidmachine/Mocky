@@ -21,7 +21,7 @@ Work in progress. Please come back in a few days!
 ## Using Mocky from a script or an agent
 
 Mocky has no accounts: a mock belongs to whoever holds the secret chosen when it was created, so
-the API can be driven directly with `curl`. See **[docs/AGENTS.md](docs/AGENTS.md)** for the
+the API can be driven directly with `curl`. See **[AGENTS.md](AGENTS.md)** for the
 endpoints, the capture log, and a full create → inspect → delete run.
 
 Mocks created without an `expiration` live for two weeks and are then deleted automatically.

@@ -13,6 +13,7 @@ import org.http4s.server.middleware.CORS
 
 import io.mocky.config.Settings
 import io.mocky.models.mocks.MockCreatedResponse
+import io.mocky.models.mocks.enums.Expiration
 import io.mocky.repositories.MockV3Repository
 import io.mocky.utils.HttpUtil
 
@@ -35,6 +36,18 @@ class MockApiService(repository: MockV3Repository, settings: Settings) extends H
   implicit private val createUpdateMockDecoder: Decoder[CreateUpdateMock] = CreateUpdateMock.decoder(settings.mock)
 
   private def routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
+
+    /*
+     * Describe the API to whoever asks.
+     *
+     * The web UI is a single-page app, so a caller that is not a browser — a script, or an agent
+     * handed nothing but a URL — has no way to learn what this service accepts. This is the one
+     * place such a caller can reach without a checkout, so it answers the questions that
+     * otherwise require reading the source: what the endpoints are, that a mock is owned by a
+     * secret the caller chooses, and how long a mock lives.
+     */
+    case GET -> Root / "api" =>
+      Ok(ApiDescription.json(settings.endpoint, Expiration.Default.entryName))
 
     // Create new mock
     case req @ POST -> Root / "api" / "mock" =>
