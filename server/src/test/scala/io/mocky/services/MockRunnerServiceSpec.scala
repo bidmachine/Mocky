@@ -44,7 +44,7 @@ class MockRunnerServiceSpec extends AnyWordSpec with MockFactory with Matchers {
 
     verbs.foreach { verb =>
       s"play a mock with $verb request" in {
-        (repositoryV3.touchAndGetMockResponse _).when(id).returns(IO.pure(Right(mock)))
+        (repositoryV3.touchCaptureAndGetMockResponse _).when(id, *, *).returns(IO.pure(Right(mock)))
         val response = serve(Request[IO](verb, Uri.unsafeFromString(s"/v3/$id")))
 
         response.status shouldBe Status.Created
@@ -54,7 +54,7 @@ class MockRunnerServiceSpec extends AnyWordSpec with MockFactory with Matchers {
     }
 
     "support the sleep feature" in {
-      (repositoryV3.touchAndGetMockResponse _).when(id).returns(IO.pure(Right(mock)))
+      (repositoryV3.touchCaptureAndGetMockResponse _).when(id, *, *).returns(IO.pure(Right(mock)))
 
       val delay = 1500L
       val start = System.currentTimeMillis()
@@ -65,7 +65,7 @@ class MockRunnerServiceSpec extends AnyWordSpec with MockFactory with Matchers {
     }
 
     "support the callback feature" in {
-      (repositoryV3.touchAndGetMockResponse _).when(id).returns(IO.pure(Right(mock)))
+      (repositoryV3.touchCaptureAndGetMockResponse _).when(id, *, *).returns(IO.pure(Right(mock)))
 
       val response = serve(Request[IO](GET, Uri.unsafeFromString(s"/v3/$id?${Jsonp.DEFAULT_PARAMETER}=wrapInside")))
 
@@ -76,7 +76,7 @@ class MockRunnerServiceSpec extends AnyWordSpec with MockFactory with Matchers {
 
     "support CORS request coming from any origin, any header, etc" in {
 
-      (repositoryV3.touchAndGetMockResponse _).when(id).returns(IO.pure(Right(mock)))
+      (repositoryV3.touchCaptureAndGetMockResponse _).when(id, *, *).returns(IO.pure(Right(mock)))
 
       val origin = "http://www.anywebsite.fr"
       val corsRequestHeaders = Seq(
