@@ -17,6 +17,10 @@ lazy val root = (project in file("."))
   // Package with resources
   .enablePlugins(JavaAppPackaging)
   .settings(mappings in Universal ++= directory("src/main/resources"))
+  // sbt-native-packager defaults the Docker base image to `openjdk:8`, which Docker Hub has
+  // since removed — the official `openjdk` images are archived and the 8 tags are gone, so the
+  // build failed resolving them. Temurin is the Adoptium successor and still publishes Java 8.
+  .settings(dockerBaseImage := "eclipse-temurin:8-jre")
   // Make build information available at runtime
   .enablePlugins(BuildInfoPlugin)
   .settings(Seq(
