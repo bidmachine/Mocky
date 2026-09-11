@@ -46,6 +46,7 @@ class MockyServerSpec extends AnyWordSpec with Matchers with OptionValues with E
         environment = "dev",
         endpoint = "https://mocky.io",
         mock = MockSettings(1000000, 1000),
+        capture = CaptureSettings(65536, 1048576, 50, 100, 7.days),
         security = SecuritySettings(14),
         throttle = ThrottleSettings(100, 1.seconds, 10000),
         sleep = SleepSettings(60.seconds, "mocky-delay"),
