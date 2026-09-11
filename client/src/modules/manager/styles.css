@@ -165,7 +165,7 @@ div.mock-error {
  * Focus rings. The site theme sets `button:focus { outline: none !important }`, which leaves
  * 13 of the 14 tab stops in this panel invisible to a keyboard user.
  */
-.captures button:focus-visible,
+.captures button:not(.capture-switch):focus-visible,
 .captures input:focus-visible,
 .captures [role='button']:focus-visible,
 .captures [role='treeitem']:focus-visible {
@@ -273,10 +273,15 @@ button.capture-switch.on span.capture-knob {
   transform: translateX(15px);
 }
 
-button.capture-switch:focus-visible {
+/*
+ * The ring goes round the switch, not round the button.
+ *
+ * The button wraps the track and its label, so outlining the button drew a rectangle across the
+ * whole "Capture requests" row — which read as a stray border rather than as focus.
+ */
+button.capture-switch:focus-visible span.capture-track {
   outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 3px;
+  outline-offset: 2px;
 }
 
 span.capture-meta {
@@ -780,4 +785,26 @@ pre.capture-raw {
   background: var(--danger-bg);
   color: var(--danger);
   text-align: left;
+}
+
+
+/*
+ * The button offering to turn capture on.
+ *
+ * It had no styles of its own, so it took the vendor theme's `.btn--sm`, which is sized for a
+ * navigation bar: cramped padding, a radius that did not match anything around it, and a label
+ * that sat off-centre.
+ */
+div.captures-empty button.btn {
+  margin: 14px 0 0;
+  padding: 0 20px;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }

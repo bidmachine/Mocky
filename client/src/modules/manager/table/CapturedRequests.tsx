@@ -132,9 +132,13 @@ const CapturedRequests = (props: { mock: MockStored }) => {
       // Switching capture off only stops new records — what was already collected stays readable
       load();
     } else {
-      // A 404 here means the mock is in this browser's list but not on the server — the usual
-      // cause is a mock deleted elsewhere, or a database this browser has outlived.
-      setError('This mock no longer exists on the server, so capture cannot be changed for it.');
+      // A 404 here says the request did not land, not that the mock is gone: the server may be
+      // running a build without the capture endpoints at all, which was the first thing this
+      // message got wrong in front of someone.
+      setError(
+        'Could not turn capture on. The mock may have been deleted, or this server may not support ' +
+          'request capture yet.'
+      );
     }
   };
 
