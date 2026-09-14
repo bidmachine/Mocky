@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Moment from 'react-moment';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import { useDispatch } from 'react-redux';
-import { NavLink } from 'react-router-dom';
 
 import {
   faChevronDown as iconCollapsed,
@@ -14,7 +13,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { MockStored } from '../../../redux/mocks/types';
-import { update as updateMock } from '../../../redux/mocks/slice';
+import { remove as removeMock, update as updateMock } from '../../../redux/mocks/slice';
 import MockyAPI from '../../../services/MockyAPI/MockyAPI';
 import GA from '../../../services/Analytics/GA';
 import { absoluteMockLink } from '../../../services/url';
@@ -31,6 +30,9 @@ const MockRow = (props: { mock: MockStored }) => {
   const [error, setError] = useState<string | undefined>(undefined);
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<'response' | 'requests'>('response');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
 
   // The row is always editable once expanded, so the drafts start from what the mock holds.
   const [draft, setDraft] = useState(() => formatBody(mock.content ?? '', mock.contentType));
@@ -92,6 +94,38 @@ const MockRow = (props: { mock: MockStored }) => {
   // A JSON mock that no longer parses would still be served as-is, so warn before saving it
   const invalidJson = isDirty && !isValidForContentType(draft, mock.contentType);
 
+  /**
+   * Delete the mock from the row it sits in.
+   *
+   * This used to take the reader to a page of its own, which is still there for the secret
+   * delete link — someone opening that link a week later has no row to click. From the list,
+   * where the mock is right in front of them, a page is three steps for one decision.
+   *
+   * The server goes first: the list in this browser is the only copy of the id and secret, so
+   * forgetting the mock before the request succeeds would leave it alive and unreachable.
+   */
+  const remove = async () => {
+    setDeleting(true);
+    setDeleteFailed(false);
+
+    GA.event('mock', 'delete');
+
+    let deleted = false;
+    try {
+      deleted = Boolean(await MockyAPI.delete({ id: mock.id, secret: mock.secret }));
+    } catch (problem) {
+      console.error(`Could not delete the mock: ${problem}`);
+    }
+
+    setDeleting(false);
+
+    if (deleted) {
+      dispatch(removeMock(mock.id));
+    } else {
+      setDeleteFailed(true);
+    }
+  };
+
   return (
     <>
       <tr className="mock-row">
@@ -137,11 +171,52 @@ const MockRow = (props: { mock: MockStored }) => {
             <FontAwesomeIcon icon={iconOpen} />
           </a>
           &nbsp;
-          <NavLink to={`/manage/delete/${mock.id}/${mock.secret}`} className="icon-delete" title="Delete the mock">
+          <button
+            type="button"
+            className="btn-icon icon-delete"
+            title="Delete the mock"
+            onClick={() => {
+              setDeleteFailed(false);
+              setConfirmingDelete(true);
+            }}
+          >
             <FontAwesomeIcon icon={iconDelete} />
-          </NavLink>
+          </button>
         </td>
       </tr>
+
+      {confirmingDelete && (
+        <tr className="mock-confirm-row">
+          <td colSpan={4}>
+            <div className="mock-confirm" role="alertdialog" aria-label="Delete this mock">
+              <div className="mock-confirm__text">
+                <strong>Delete {mock.name ? `"${mock.name}"` : 'this mock'}?</strong>
+                <span>
+                  Its URL stops working, and anything it captured goes with it. This cannot be undone.
+                </span>
+                {deleteFailed && (
+                  <span className="mock-confirm__error" role="alert">
+                    The mock could not be deleted, so it is still on the server and still in your list.
+                  </span>
+                )}
+              </div>
+              <div className="mock-confirm__actions">
+                <button
+                  type="button"
+                  className="btn btn--sm"
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button type="button" className="btn btn--sm btn--danger" onClick={remove} disabled={deleting}>
+                  {deleting ? 'Deleting…' : deleteFailed ? 'Try again' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
 
       {expanded && (
         <tr className="mock-details">
