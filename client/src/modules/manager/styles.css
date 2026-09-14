@@ -10,7 +10,9 @@ pre.resume {
   word-break: break-all;
 }
 
-a.icon-delete {
+/* The trash icon is a button now that it opens a confirmation in place, not a link to a page. */
+a.icon-delete,
+button.icon-delete {
   color: var(--delete);
 }
 
@@ -807,4 +809,63 @@ div.captures-empty button.btn {
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1;
+}
+
+
+/*
+ * Deleting a mock, confirmed in the row it lives in.
+ *
+ * The full page this replaces is still reachable through the secret delete link, where there is
+ * no row to point at. From the list it was three steps — navigate, confirm, come back — for a
+ * decision the reader is already looking at.
+ */
+tr.mock-confirm-row td {
+  padding: 0;
+  border-top: 0;
+}
+
+.mock-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: var(--danger-bg);
+  border-left: 3px solid var(--delete);
+}
+
+.mock-confirm__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.mock-confirm__text span {
+  color: var(--text-soft);
+}
+
+.mock-confirm__error {
+  color: var(--danger) !important;
+  font-weight: 600;
+}
+
+.mock-confirm__actions {
+  display: flex;
+  gap: 10px;
+  flex: none;
+}
+
+.mock-confirm__actions .btn {
+  margin: 0;
+  min-height: 36px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
 }
